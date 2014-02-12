@@ -5,30 +5,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
  
-/**
- * Image histogram equalization
- *
- * Author: Bostjan Cigan (http://zerocool.is-a-geek.net)
- *
- */
- 
 public class Hist {
- 
+    private counter = 0;
     private static BufferedImage original, equalized;
  
-    public static void main(String[] args) throws IOException {
- 
-        File original_f = new File(args[0]+".jpg");
-        String output_f = args[1];
+    public Hist(String old_file){
+        File original_f = new File(old_file+".jpg");
         original = ImageIO.read(original_f);
         equalized = histogramEqualization(original);
-        writeImage(output_f);
- 
     }
  
-    private static void writeImage(String output) throws IOException {
-        File file = new File(output+".jpg");
+    public String writeImage(String output) throws IOException {
+        String name = "output"+counter++;
+        File file = new File(name+".jpg");
         ImageIO.write(equalized, "jpg", file);
+        return name;
     }
  
     private static BufferedImage histogramEqualization(BufferedImage original) {
