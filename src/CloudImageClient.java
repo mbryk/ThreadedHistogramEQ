@@ -17,24 +17,35 @@ public class CloudImageClient {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
-            String hostName = args[0];
-            int portNumber = Integer.parseInt(args[1]);
-            File original_f = new File(args[2]+".jpg");
-            String output_f = args[3];
-            BufferedImage original, received;
 
-            original = ImageIO.read(original_f);
-            
-            Socket echoSocket = new Socket(hostName, portNumber);
-            OutputStream outToServer = echoSocket.getOutputStream();            
-            InputStream inFromServer = echoSocket.getInputStream();
+        if (args.length != 4){
+            System.err.println("Usage java CloudImageClient <host name> <port number> <original file> <output file>");
+            System.exit(1);
+        }
+        
+        String hostName = args[0];
+        int portNumber = Integer.parseInt(args[1]);
+        File original_f = new File(args[2]+".jpg");
+        String output_f = args[3];
+        BufferedImage original, received;
 
-            ImageIO.write(original,"jpg", outToServer);               
-            
-            received = ImageIO.read(inFromServer);
+        original = ImageIO.read(original_f);
+        
+        Socket echoSocket = new Socket(hostName, portNumber);
+        OutputStream outToServer = echoSocket.getOutputStream();            
+        InputStream inFromServer = echoSocket.getInputStream();
 
-            File file = new File(output_f);
-            ImageIO.write(received,"jpg",file);
-            System.out.println("Done");
+        String ss = "\n";
+        byte[] b = ss.getBytes();
+
+        boolean test = ImageIO.write(original,"jpg", outToServer);
+        outToServer.write(b);
+        outToServer.flush();
+        System.out.println("Wrote"+test);        
+        received = ImageIO.read(inFromServer);
+
+        File file = new File(output_f);
+        ImageIO.write(received,"jpg",file);
+        System.out.println("Done");
     }
 }
