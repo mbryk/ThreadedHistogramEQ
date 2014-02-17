@@ -2,11 +2,9 @@ import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.ObjectInputStream;
 import java.net.*;
 import java.io.*;
-
-import java.lang.Object;
-import java.io.ObjectInputStream;
 
 public class KKMultiServerThread extends Thread {
     private Socket socket = null;
@@ -17,46 +15,40 @@ public class KKMultiServerThread extends Thread {
     }
     
     public void run() {
-        System.out.println("starting Thread.");
+        System.out.println("Started Server Thread.");
         try (
             OutputStream outToClient = socket.getOutputStream();
             InputStream inFromClient = socket.getInputStream();
             ) {
-            System.out.println("In try!");
             BufferedImage original, equalized;
-            System.out.println("Reading");
+            byte[] originalByteImage, receivedByteImage;
 
-ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-byte[] byteImage = (byte[])ois.readObject();
+            //get original byte image
+            ObjectInputStream ois = new ObjectInputStream(inFromClient);
+            originalByteImage = (byte[])ois.readObject();
 
-ByteArrayInputStream bais = new ByteArrayInputStream(byteImage);
-original = ImageIO.read(bais);
+            //convert byte array to BufferedImage
+            ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
+            original = ImageIO.read(bais);
 
-            //original = ImageIO.read(inFromClient);
-            System.out.println("Making Histogram");
+            //run Histogram
             Histogram hist = new Histogram(original);
             equalized = hist.equalized;
-            System.out.println("Returned Equalized");
 
-File file = new File("TestOut");
+            //convert to byte array
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(equalized,"jpg", baos);
+            baos.flush();
+            receivedByteImage = baos.toByteArray();
+            
+            //send equalized image
+            ObjectOutputStream oos = new ObjectOutputStream(outToClient);
+            oos.writeObject(receivedByteImage);
 
-            //ImageIO.write(equalized,"jpg",outToClient);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(original,"jpg", baos);
-        baos.flush();
-        byte[] originalByteImage = baos.toByteArray();
-        ObjectOutputStream oos = new ObjectOutputStream(outToClient);
-        oos.writeObject(originalByteImage);
-
-//ImageIO.write(equalized,"jpg",file);
-System.out.println("Printed");
-            //outToClient.close();
+            System.out.println("Finished Server Thread.");
             socket.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        catch (ClassNotFoundException e){e.printStackTrace();}
+        catch (IOException e) { e.printStackTrace(); }
+        catch (ClassNotFoundException e){ e.printStackTrace(); }
     }
 }
