@@ -1,13 +1,12 @@
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageInputStream;
-import javax.imageio.*;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
 import java.io.*;
+
 import java.lang.Object;
-import java.util.*;
+import java.io.ObjectInputStream;
 
 public class KKMultiServerThread extends Thread {
     private Socket socket = null;
@@ -23,43 +22,41 @@ public class KKMultiServerThread extends Thread {
             OutputStream outToClient = socket.getOutputStream();
             InputStream inFromClient = socket.getInputStream();
             ) {
-
-            InputStream stream;
-            stream = inFromClient;
-            
-            stream = new BufferedInputStream(stream);
-
-            ImageInputStream imgStream;
-            imgStream = ImageIO.createImageInputStream(stream);
-
-            Iterator<ImageReader> i = 
-                ImageIO.getImageReaders(imgStream);
-            if (!i.hasNext()) {
-                //logger.log(Level.FINE, "No ImageReaders found, exiting.");
-                System.out.println("i.hasNext ERR");
-            }
-
-            ImageReader reader = i.next();
-            reader.setInput(imgStream);
-
-            BufferedImage image = reader.read(0);
-
-
             System.out.println("In try!");
             BufferedImage original, equalized;
             System.out.println("Reading");
+
+ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+byte[] byteImage = (byte[])ois.readObject();
+
+ByteArrayInputStream bais = new ByteArrayInputStream(byteImage);
+original = ImageIO.read(bais);
+
             //original = ImageIO.read(inFromClient);
             System.out.println("Making Histogram");
-            original = image;
             Histogram hist = new Histogram(original);
             equalized = hist.equalized;
             System.out.println("Returned Equalized");
-            ImageIO.write(equalized,"jpg",outToClient);
-            outToClient.flush();
+
+File file = new File("TestOut");
+
+            //ImageIO.write(equalized,"jpg",outToClient);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(original,"jpg", baos);
+        baos.flush();
+        byte[] originalByteImage = baos.toByteArray();
+        ObjectOutputStream oos = new ObjectOutputStream(outToClient);
+        oos.writeObject(originalByteImage);
+
+//ImageIO.write(equalized,"jpg",file);
+System.out.println("Printed");
+            //outToClient.close();
             socket.close();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+        catch (ClassNotFoundException e){e.printStackTrace();}
     }
 }

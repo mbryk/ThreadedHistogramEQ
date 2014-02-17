@@ -5,11 +5,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.Socket;
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageOutputStream;
+
+import java.lang.Object;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+
 
 public class CloudImageClient {
     /**
@@ -30,22 +37,38 @@ public class CloudImageClient {
         BufferedImage original, received;
 
         original = ImageIO.read(original_f);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(original,"jpg", baos);
+        baos.flush();
+        byte[] originalByteImage = baos.toByteArray();
         
         Socket echoSocket = new Socket(hostName, portNumber);
-        OutputStream outToServer = echoSocket.getOutputStream();            
+        OutputStream outToServer = echoSocket.getOutputStream();
+
+        ObjectOutputStream oos = new ObjectOutputStream(outToServer);
+
         InputStream inFromServer = echoSocket.getInputStream();
 
-        String ss = "\n";
-        byte[] b = ss.getBytes();
+        oos.writeObject(originalByteImage);
 
-        boolean test = ImageIO.write(original,"jpg", outToServer);
-        outToServer.write(b);
-        outToServer.flush();
-        System.out.println("Wrote"+test);        
-        received = ImageIO.read(inFromServer);
+        //boolean test = ImageIO.write(original,"jpg", outToServer);
+        //outToServer.write(eof());
+        //outToServer.flush();
+        //outToServer.close();
+        //System.out.println("Wrote"+test);        
+        //received = ImageIO.read(inFromServer);
+        //while(received == null){received = ImageIO.read(inFromServer);}
+
+ObjectInputStream ois = new ObjectInputStream(inFromServer);
+try{byte[] byteImage = (byte[])ois.readObject();
+
+ByteArrayInputStream bais = new ByteArrayInputStream(byteImage);
+received = ImageIO.read(bais);
 
         File file = new File(output_f);
-        ImageIO.write(received,"jpg",file);
+        ImageIO.write(received,"jpg",file);}
+        catch (ClassNotFoundException e){e.printStackTrace();}
         System.out.println("Done");
     }
 }
