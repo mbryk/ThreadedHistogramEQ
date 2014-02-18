@@ -14,10 +14,21 @@ public class KKMultiServer {
         
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
             while (listening) {
-	            new KKMultiServerThread(serverSocket.accept()).start();
+                
+                Socket s = serverSocket.accept();
+                int p = s.getPort();
+                System.out.println("Port: "+p);
+                InetAddress ia = s.getInetAddress();
+                s.close();
+
+                System.out.println("HERE");
+                Socket newSocket = new Socket(ia, p);
+	            System.out.println("Got new S");
+
+                new KKMultiServerThread(newSocket).start();
 	        }
 	    } catch (IOException e) {
-            System.err.println("Could not listen on port " + portNumber);
+            System.err.println(e);
             System.exit(-1);
         }
     }

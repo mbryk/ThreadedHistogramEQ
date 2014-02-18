@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
-import java.net.Socket;
+import java.net.*;
 import javax.imageio.ImageIO;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
@@ -40,7 +40,12 @@ public class CloudImageClient {
         originalByteImage = baos.toByteArray();
         
         //initiate client socket
-        Socket echoSocket = new Socket(hostName, portNumber);
+        Socket s = new Socket(hostName, portNumber);
+        s.setReuseAddress(true);
+        ServerSocket s2 = new ServerSocket(s.getLocalPort());
+        System.out.println("HERE");
+        System.out.println("Port: "+s2.getLocalPort());
+        Socket echoSocket = s2.accept();
 
         //get output stream and sent byte array image
         OutputStream outToServer = echoSocket.getOutputStream();
