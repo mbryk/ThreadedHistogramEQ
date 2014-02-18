@@ -12,12 +12,13 @@ public class ProcessingServers extends Thread {
     private int numConsumed;
     private Socket socket;
 
-    public ProcessingServers(CubbyHole c) {
+    public ProcessingServers(CubbyHole c, int i) {
+        number = i;
         cubbyhole = c;
     }
  
     public void processData() {
-        System.out.println("Started Server Thread.");
+        System.out.println("Consumer #" + this.number+" Started Server Thread.");
         try (
             OutputStream outToClient = socket.getOutputStream();
             InputStream inFromClient = socket.getInputStream();
@@ -47,7 +48,7 @@ public class ProcessingServers extends Thread {
             ObjectOutputStream oos = new ObjectOutputStream(outToClient);
             oos.writeObject(receivedByteImage);
 
-            System.out.println("Finished Server Thread.");
+            System.out.println("Consumer #" + this.number+" Finished Processing.");
             socket.close();
         }
         catch (IOException e) { e.printStackTrace(); }
@@ -72,7 +73,7 @@ public class ProcessingServers extends Thread {
                 } catch(IOException e){System.out.println(e);}   
                 
                 System.out.println("Consumer #" + this.number
-                                 + " got: " + data);
+                                 + " processed: " + data);
                 try {
                     Thread.sleep((int)(Math.random() * 100));
                 } catch (InterruptedException e) {};

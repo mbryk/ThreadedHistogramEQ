@@ -17,7 +17,7 @@ public class ProducerConsumer {
 			cp.start();
 		}
 		for(int i=0;i<numCons;i++) {
-			ProcessingServers cc = new ProcessingServers(c);
+			ProcessingServers cc = new ProcessingServers(c,i);
 			cc.start();
 		}
     }

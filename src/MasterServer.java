@@ -7,7 +7,6 @@ import java.io.*;
 
 public class MasterServer extends Thread{
     private CubbyHole cubbyhole;
-    private int number;
     private int numProduced;
     public int portNumber;    
     
