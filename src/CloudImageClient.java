@@ -40,12 +40,14 @@ public class CloudImageClient {
         originalByteImage = baos.toByteArray();
         
         //initiate client socket
+        System.out.println("Connecting To Master Server");
         Socket s = new Socket(hostName, portNumber);
         s.setReuseAddress(true);
         ServerSocket s2 = new ServerSocket(s.getLocalPort());
-        System.out.println("HERE");
+        
         System.out.println("Port: "+s2.getLocalPort());
         Socket echoSocket = s2.accept();
+        System.out.println("Connected to Processing Server");
 
         //get output stream and sent byte array image
         OutputStream outToServer = echoSocket.getOutputStream();
@@ -64,6 +66,6 @@ public class CloudImageClient {
         //write image to file
         File file = new File(output_f);
         ImageIO.write(received,"jpg",file);
-        System.out.println("Done");
+        System.out.println("Image Received and saved at "+output_f);
     }
 }

@@ -57,17 +57,21 @@ public class Equalizers extends Thread {
 
         while(true){
             try{
+                System.out.println("Waiting for Next Assignment");
                 Socket clientInfoSocket = new Socket(hostName,portNumber); // To ConsumerListener
                 BufferedReader inFromMaster = new BufferedReader(
                     new InputStreamReader(clientInfoSocket.getInputStream()));
                 String clientHostName = inFromMaster.readLine();
                 String clientPortString = inFromMaster.readLine();
+                System.out.println("Received Assignment");
 
                 int clientPort = Integer.parseInt(clientPortString);
 
                 Socket socket = new Socket(clientHostName,clientPort);
+                System.out.println("Connected to Client at Port "+clientPort);
 
                 processData(socket);
+                System.out.println("Processed Image and Returned to Client");
                 
             } catch(IOException e){
                 System.err.println(e);

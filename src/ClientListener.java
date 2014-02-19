@@ -20,9 +20,10 @@ public class ClientListener extends Thread {
        
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
             while (true) {
+                System.out.println("Listening for Clients");
                 Socket s = serverSocket.accept();
                 int p = s.getPort();
-                System.out.println("Port: "+p);
+                System.out.println("New Client at Port "+p);
                 InetAddress ia = s.getInetAddress();
                 s.close();
                 
