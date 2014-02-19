@@ -73,6 +73,11 @@ public class Equalizers{
                 Socket clientInfoSocket = new Socket(hostName,portNumber); // To ConsumerListener
                 BufferedReader inFromMaster = new BufferedReader(
                     new InputStreamReader(clientInfoSocket.getInputStream()));
+                
+                PrintWriter outToMaster = new PrintWriter(clientInfoSocket.getOutputStream(), true);
+                String receivedPing = inFromMaster.readLine(); //accept ping
+                outToMaster.println(receivedPing);
+
                 String clientHostName = inFromMaster.readLine();
                 String clientPortString = inFromMaster.readLine();
                 String imageCountString = inFromMaster.readLine();

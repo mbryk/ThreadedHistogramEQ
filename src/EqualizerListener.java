@@ -11,6 +11,22 @@ public class EqualizerListener extends Thread {
         portNumber = port;
     }
 
+    public boolean ping(Socket s){
+        String received = null;
+        try{
+            PrintWriter outToEqualizer = new PrintWriter(s.getOutputStream(), true);
+            BufferedReader inFromEqualizer = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            outToEqualizer.println("pingTest");
+            received = inFromEqualizer.readLine();
+        }catch (IOException e){
+            System.err.println("ping Err: "+e);
+        }
+        if (received == null){
+            System.out.println("disconnected");
+            return false;
+        } else {return true;}
+    }
+
     public void run() {
 
     	Data data = null;
@@ -25,7 +41,7 @@ public class EqualizerListener extends Thread {
                     System.out.println("Sending New Assignment");
                     System.out.println("Closed?"+s.isClosed());
                     System.out.println("Connected?"+s.isConnected());
-                	if(s.isConnected()){
+                	if(ping(s)){
                         System.out.println("Sending New Assignment");
                         PrintWriter outToEqualizer = new PrintWriter(s.getOutputStream(), true);
                         outToEqualizer.println(data.ia.getHostName());
