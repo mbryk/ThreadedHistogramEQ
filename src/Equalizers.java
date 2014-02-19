@@ -3,43 +3,54 @@ import javax.imageio.ImageIO;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ObjectInputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.net.*;
 import java.io.*;
 
-public class Equalizers extends Thread {
-    private int number;
-    private int numConsumed;
+public class Equalizers{
+    protected static final int THREAD_POOL_SIZE = 5;
 
-    public static void processData(Socket socket) {
+    public static void processData(Socket socket, int imageCount) {
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+        BufferedImageArray array = new BufferedImageArray(imageCount);
+
         try (
             OutputStream outToClient = socket.getOutputStream();
             InputStream inFromClient = socket.getInputStream();
             ) {
-            BufferedImage original, equalized;
             byte[] originalByteImage, receivedByteImage;
 
-            //get original byte image
-            ObjectInputStream ois = new ObjectInputStream(inFromClient);
-            originalByteImage = (byte[])ois.readObject();
 
-            //convert byte array to BufferedImage
-            ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
-            original = ImageIO.read(bais);
+            for(i=0;i<imageCount;i++){
+                //get original byte image
+                ObjectInputStream ois = new ObjectInputStream(inFromClient);
+                originalByteImage = (byte[])ois.readObject();
 
-            //run Histogram
-            Histogram hist = new Histogram(original);
-            equalized = hist.equalized;
+                //convert byte array to BufferedImage
+                ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
+                BufferedImage image = ImageIO.read(bais);
+                array.addImage(image,i);
+                Runnable worker = new ProcessingWorkerThread(array,i);
+                executor.execute(worker);
+            }
 
-            //convert to byte array
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(equalized,"jpg", baos);
-            baos.flush();
-            receivedByteImage = baos.toByteArray();
+            executor.shutdown();
+            while (!executor.isTerminated()) {}
+            System.out.println("Finished all threads");
             
-            //send equalized image
-            ObjectOutputStream oos = new ObjectOutputStream(outToClient);
-            oos.writeObject(receivedByteImage);
-
+            // workers are done
+            for(i=0;i<imageCount;i++){
+                //cnvert to byte array
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(array.getImage(i),"jpg", baos);
+                baos.flush();
+                receivedByteImage = baos.toByteArray();
+            
+                //send equalized image
+                ObjectOutputStream oos = new ObjectOutputStream(outToClient);
+                oos.writeObject(receivedByteImage);
+            }
             socket.close();
         }
         catch (IOException e) { e.printStackTrace(); }
@@ -54,6 +65,7 @@ public class Equalizers extends Thread {
 
         String hostName = args[0];
         int portNumber = Integer.parseInt(args[1]);
+        int i;
 
         while(true){
             try{
@@ -63,21 +75,22 @@ public class Equalizers extends Thread {
                     new InputStreamReader(clientInfoSocket.getInputStream()));
                 String clientHostName = inFromMaster.readLine();
                 String clientPortString = inFromMaster.readLine();
+                String imageCountString = inFromMaster.readLine();
                 System.out.println("Received Assignment");
 
                 int clientPort = Integer.parseInt(clientPortString);
+                int imageCount = Integer.parseInt(imageCountString);
 
                 Socket socket = new Socket(clientHostName,clientPort);
                 System.out.println("Connected to Client at Port "+clientPort);
 
-                processData(socket);
-                System.out.println("Processed Image and Returned to Client");
+                processData(socket,imageCount);
+                System.out.println("Processed Images and Returned to Client");
                 
             } catch(IOException e){
                 System.err.println(e);
                 System.err.println("Client Gone, probably");
             }
         }
-        
     }
 }
