@@ -1,16 +1,18 @@
 import java.awt.image.BufferedImage;
 
 public class BufferedImageArray {
-	
+	private static ArrayList<BufferedImage[]> array;
+
 	public BufferedImageArray(int imageCount){
-		array = new array of size image count
+		array = new ArrayList<BufferedImage[]>();
+		array.ensureCapacity(imageCount);
 	}
 	
 	public BufferedImage getImage(int index){
-		return array[index];
+		return array.get(index);
 	}
 
 	public void addImage(BufferedImage image, int index){
-		array[index] = image;
+		array.add(index,image);
 	}
 }
