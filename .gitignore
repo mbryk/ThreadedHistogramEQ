@@ -1,18 +1,2 @@
 *.class
-
-# Package Files #
-*.jar
-*.war
-*.ear
-
-*.sublime-project
-*.sublime-workspace
-
-*.log
-*.class
-.classpath
-.project
-.settings/
-target/
-logs/
-
+*.jpg
