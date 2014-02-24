@@ -2,13 +2,28 @@ import java.net.*;
 import java.io.*;
 
 public class LoadBalancer {
+	private ArrayList<Socket> masterSocketList = new ArrayList<Socket>();
+	private ArrayList<PrintWriter> masterWriterList = new ArrayList<PrintWriter>();
+	private ArrayList<BufferedReader> masterReaderList = new ArrayList<BufferedReader>();
 
 
+	protected static Data getMasterInfo(){
+		Socket curSocket;
 
-	//protected static Data getMasterInfo(){
+		for(int i=0; i<masterSocketList.size(); i++){
+			curSocket = masterSocketList.get(i);
+			masterWriterList.get(i).println("Give me your stats!");
+			String queueRatio_str = masterReaderList.get(i).readLine();
+			String numProducers_str = masterReaderList.get(i).readLine();
+			if (queueRatio_str == null || numProducers_str == null){
+				masterSocketList.remove(i);
+				masterWriterList.remove(i);
+				masterReaderList.remove(i);
+			}
+		}
 
 
-	//}
+	}
 	
 	public static void main(String[] args) {
 

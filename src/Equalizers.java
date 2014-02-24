@@ -83,7 +83,7 @@ public class Equalizers{
 
                 String clientHostName = inFromMaster.readLine();
                 String clientPortString = inFromMaster.readLine();
-                String imageCountString = inFromMaster.readLine();
+                //String imageCountString = inFromMaster.readLine();
                 System.out.println("Received Assignment");
 
                 int clientPort = Integer.parseInt(clientPortString);

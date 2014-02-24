@@ -37,8 +37,8 @@ public class EqualizerListener extends Thread {
                 Socket s = serverSocket.accept();
                 System.out.println("Have New Waiting Processing Server");
                 
-                if (haveData ||  ((data=cubbyhole.get())!=null)  ) { //value = null if contents of cubbyhole have been removed
-                    System.out.println("Sending New Assignment");
+                if ( haveData ||  ((data=cubbyhole.get())!=null)  ) { //value = null if contents of cubbyhole have been removed
+                    System.out.println("Sending New Assignment: "+data.ia);
                     System.out.println("Closed?"+s.isClosed());
                     System.out.println("Connected?"+s.isConnected());
                 	if(ping(s)){

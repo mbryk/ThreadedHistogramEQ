@@ -33,20 +33,11 @@ public class CubbyHole {
                 System.out.println("Giving Data");
                 ret = queue.take();
                 //ret = queue.poll(2, TimeUnit.SECONDS);
-                System.out.println("ia: "+ret.ia+"; p: "+ret.p);}
+            }
         } catch (InterruptedException e){
             System.err.println("Take error: " + e);
         }
 
-        /*while (!isDone() && available == false) {
-            try {
-                wait();
-            } catch (InterruptedException e) { }
-        }
-        available = false;
-        notifyAll();
-        Data ret = contents;
-        contents = null;*/
         return ret;
     }
  
@@ -57,14 +48,5 @@ public class CubbyHole {
         } catch (InterruptedException e){
             System.err.println("Put error: " + e);
         }
-
-        /*while (available == true) {
-            try {
-                wait();
-            } catch (InterruptedException e) { }
-        }
-        contents = value;
-        available = true;
-        notifyAll();*/
     }
 }
