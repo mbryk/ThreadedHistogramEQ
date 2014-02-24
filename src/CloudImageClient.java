@@ -48,6 +48,18 @@ public class CloudImageClient {
         String in_dir = args[2];
         String out_dir = args[3];
 
+        String[] fileNames = parseDirectory(in_dir);
+        File out_dir_f = new File(out_dir);
+        if (!out_dir_f.exists()){
+            if(!out_dir_f.mkdir() && !out_dir_f.mkdirs()){
+                System.out.println("Could Not Create Directory");
+                System.exit(-1);
+            }
+        } else if(!out_dir_f.isDirectory()){
+            System.out.println("Please input a directory name for output");
+            System.exit(-1);
+        }
+
         //connect to Load Balancer
         System.out.println("Connecting To Load Balancer");
         Socket sLB = new Socket(hostName, portNumber);
@@ -58,7 +70,7 @@ public class CloudImageClient {
         int masterPort = Integer.parseInt(masterPortString);
         sLB.close();
 
-        //initiate client socket
+        //initiate client socket to Master
         System.out.println("Connecting To Master Server");
         Socket s = new Socket(masterHostName, masterPort);
         s.setReuseAddress(true);
@@ -72,8 +84,7 @@ public class CloudImageClient {
         OutputStream outToServer = echoSocket.getOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(outToServer);
 
-        String[] fileNames = parseDirectory(in_dir);
-
+        //loop through images in directory
         for(String fileName : fileNames) {
             System.out.println(fileName);
 
@@ -90,17 +101,6 @@ public class CloudImageClient {
         }
         // Tell Equalizer that you are done:
         oos.writeObject(null);
-
-        File out_dir_f = new File(out_dir);
-        if (!out_dir_f.exists()){
-            if(!out_dir_f.mkdir() && !out_dir_f.mkdirs()){
-                System.out.println("Could Not Create Directory");
-                System.exit(-1);
-            }
-        } else if(!out_dir_f.isDirectory()){
-            System.out.println("Please input a directory name for output");
-            System.exit(-1);
-        }
 
         InputStream inFromServer = echoSocket.getInputStream();
         ObjectInputStream ois = new ObjectInputStream(inFromServer);
