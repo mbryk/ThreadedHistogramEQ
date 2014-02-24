@@ -21,11 +21,11 @@ public class Equalizers{
             InputStream inFromClient = socket.getInputStream();
             ) {
             byte[] originalByteImage, receivedByteImage;
-
+            ObjectInputStream ois = new ObjectInputStream(inFromClient);
 
             for(i=0;i<imageCount;i++){
                 //get original byte image
-                ObjectInputStream ois = new ObjectInputStream(inFromClient);
+                
                 originalByteImage = (byte[])ois.readObject();
 
                 //convert byte array to BufferedImage
@@ -41,15 +41,17 @@ public class Equalizers{
             System.out.println("Finished all threads");
             
             // workers are done
+            ObjectOutputStream oos = new ObjectOutputStream(outToClient);
+
             for(i=0;i<imageCount;i++){
-                //cnvert to byte array
+                //convert to byte array
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 ImageIO.write(array.getImage(i),"jpg", baos);
                 baos.flush();
                 receivedByteImage = baos.toByteArray();
             
                 //send equalized image
-                ObjectOutputStream oos = new ObjectOutputStream(outToClient);
+                
                 oos.writeObject(receivedByteImage);
             }
             socket.close();
@@ -85,7 +87,8 @@ public class Equalizers{
                 System.out.println("Received Assignment");
 
                 int clientPort = Integer.parseInt(clientPortString);
-                int imageCount = Integer.parseInt(imageCountString);
+                //int imageCount = Integer.parseInt(imageCountString);
+                int imageCount = 4;
 
                 Socket socket = new Socket(clientHostName,clientPort);
                 System.out.println("Connected to Client at Port "+clientPort);
