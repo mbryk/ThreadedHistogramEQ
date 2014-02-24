@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.net.*;
+import java.io.*;
 import javax.imageio.ImageIO;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
@@ -47,9 +48,19 @@ public class CloudImageClient {
         String in_dir = args[2];
         String out_dir = args[3];
 
+        //connect to Load Balancer
+        System.out.println("Connecting To Load Balancer");
+        Socket sLB = new Socket(hostName, portNumber);
+        BufferedReader inFromLB = new BufferedReader(
+            new InputStreamReader(sLB.getInputStream()));
+        String masterHostName = inFromLB.readLine();
+        String masterPortString = inFromLB.readLine();
+        int masterPort = Integer.parseInt(masterPortString);
+        sLB.close();
+
         //initiate client socket
         System.out.println("Connecting To Master Server");
-        Socket s = new Socket(hostName, portNumber);
+        Socket s = new Socket(masterHostName, masterPort);
         s.setReuseAddress(true);
         ServerSocket s2 = new ServerSocket(s.getLocalPort());
         

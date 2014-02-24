@@ -1,44 +1,39 @@
+import java.net.*;
+import java.io.*;
+
 public class LoadBalancer {
 
 
 
-	protected static Data getMasterInfo(){
+	//protected static Data getMasterInfo(){
 
 
-	}
+	//}
 	
 	public static void main(String[] args) {
 
 
 
-		try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
+		try (ServerSocket serverSocket = new ServerSocket(3500)) { 
             while (true) {
                 System.out.println("Listening for Clients");
                 Socket s = serverSocket.accept();
 
-                Data master = getMasterInfo();
+                //Data master = getMasterInfo();
 
                 PrintWriter outToClient = new PrintWriter(s.getOutputStream(), true);
-                outToClient.println(master.ia.getHostName());
-                outToClient.println(master.p);
+                //outToClient.println(master.ia.getHostName());
+                //outToClient.println(master.p);
+                outToClient.println("127.0.0.1");
+                outToClient.println("40000");
                 s.close();
         
-
-                /*int p = s.getPort();
-                System.out.println("New Client at Port "+p);
-                InetAddress ia = s.getInetAddress();
-                s.close();
-                
-                putData(new Data(ia,p));*/
             }
         } catch (IOException e) {
             System.err.println(e);
             System.exit(-1);
         }
         
-        cubbyhole.subProducer();
-
-
 	}
 
 

@@ -30,8 +30,10 @@ public class CubbyHole {
         Data ret = null;
         try{
             if (!isDone()){
+                System.out.println("Giving Data");
                 //Data ret = queue.take();
-                ret = queue.poll(2, TimeUnit.SECONDS);}
+                ret = queue.poll(2, TimeUnit.SECONDS);
+                System.out.println("ia: "+ret.ia+"; p: "+ret.p);}
         } catch (InterruptedException e){
             System.err.println("Take error: " + e);
         }
