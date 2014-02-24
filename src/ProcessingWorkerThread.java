@@ -4,7 +4,7 @@ public class ProcessingWorkerThread implements Runnable {
 	private BufferedImageArray array;
 	private int index;
 
-    public WorkerThread(BufferedImageArray array, int imageNumber) {
+    public ProcessingWorkerThread(BufferedImageArray array, int imageNumber) {
         this.array = array;
         this.index = imageNumber;
     }
@@ -13,6 +13,6 @@ public class ProcessingWorkerThread implements Runnable {
     public void run() {
     	BufferedImage original = array.getImage(index);
     	Histogram hist = new Histogram(original);
-        array.addImage(hist.equalized);
+        array.addImage(hist.equalized,index);
     }
 }

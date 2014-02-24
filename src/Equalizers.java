@@ -14,6 +14,7 @@ public class Equalizers{
     public static void processData(Socket socket, int imageCount) {
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
         BufferedImageArray array = new BufferedImageArray(imageCount);
+        int i;
 
         try (
             OutputStream outToClient = socket.getOutputStream();

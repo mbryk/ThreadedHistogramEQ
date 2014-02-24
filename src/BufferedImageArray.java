@@ -1,10 +1,11 @@
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 public class BufferedImageArray {
-	private static ArrayList<BufferedImage[]> array;
+	private static ArrayList<BufferedImage> array;
 
 	public BufferedImageArray(int imageCount){
-		array = new ArrayList<BufferedImage[]>();
+		array = new ArrayList<BufferedImage>();
 		array.ensureCapacity(imageCount);
 	}
 	
