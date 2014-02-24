@@ -1,5 +1,11 @@
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.lang.Object;
+import java.util.concurrent.TimeUnit;
+
 public class CubbyHole {
     private Data contents;
+    private BlockingQueue<Data> queue = new ArrayBlockingQueue<>(10);
     private boolean available = false;
     private static int numProds = 0;
 
@@ -20,7 +26,17 @@ public class CubbyHole {
     }
     
     public synchronized Data get() {
-        while (!isDone() && available == false) {
+
+        Data ret = null;
+        try{
+            if (!isDone()){
+                //Data ret = queue.take();
+                ret = queue.poll(2, TimeUnit.SECONDS);}
+        } catch (InterruptedException e){
+            System.err.println("Take error: " + e);
+        }
+
+        /*while (!isDone() && available == false) {
             try {
                 wait();
             } catch (InterruptedException e) { }
@@ -28,18 +44,25 @@ public class CubbyHole {
         available = false;
         notifyAll();
         Data ret = contents;
-        contents = null;
+        contents = null;*/
         return ret;
     }
  
     public synchronized void put(Data value) {
-        while (available == true) {
+
+        try{
+            queue.put(value);
+        } catch (InterruptedException e){
+            System.err.println("Put error: " + e);
+        }
+
+        /*while (available == true) {
             try {
                 wait();
             } catch (InterruptedException e) { }
         }
         contents = value;
         available = true;
-        notifyAll();
+        notifyAll();*/
     }
 }
