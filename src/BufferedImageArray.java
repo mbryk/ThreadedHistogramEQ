@@ -4,9 +4,8 @@ import java.util.ArrayList;
 public class BufferedImageArray {
 	private static ArrayList<BufferedImage> array;
 
-	public BufferedImageArray(int imageCount){
+	public BufferedImageArray(){
 		array = new ArrayList<BufferedImage>();
-		array.ensureCapacity(imageCount);
 	}
 	
 	public BufferedImage getImage(int index){
@@ -14,6 +13,9 @@ public class BufferedImageArray {
 	}
 
 	public void addImage(BufferedImage image, int index){
-		array.add(index,image);
+		if(index>=array.size())
+			array.add(image);
+		else 
+			array.add(index,image);
 	}
 }

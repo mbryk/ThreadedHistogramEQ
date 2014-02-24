@@ -11,10 +11,10 @@ import java.io.*;
 public class Equalizers{
     protected static final int THREAD_POOL_SIZE = 5;
 
-    public static void processData(Socket socket, int imageCount) {
+    public static void processData(Socket socket) {
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-        BufferedImageArray array = new BufferedImageArray(imageCount);
-        int i;
+        BufferedImageArray array = new BufferedImageArray();
+        int i = 0;
 
         try (
             OutputStream outToClient = socket.getOutputStream();
@@ -23,18 +23,18 @@ public class Equalizers{
             byte[] originalByteImage, receivedByteImage;
             ObjectInputStream ois = new ObjectInputStream(inFromClient);
 
-            for(i=0;i<imageCount;i++){
-                //get original byte image
-                
-                originalByteImage = (byte[])ois.readObject();
-
+            while((originalByteImage = (byte[])ois.readObject())!=null){
+             
                 //convert byte array to BufferedImage
                 ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
                 BufferedImage image = ImageIO.read(bais);
                 array.addImage(image,i);
                 Runnable worker = new ProcessingWorkerThread(array,i);
                 executor.execute(worker);
+
+                i++;
             }
+            int imageCount = i;
 
             executor.shutdown();
             while (!executor.isTerminated()) {}
@@ -88,12 +88,12 @@ public class Equalizers{
 
                 int clientPort = Integer.parseInt(clientPortString);
                 //int imageCount = Integer.parseInt(imageCountString);
-                int imageCount = 4;
 
                 Socket socket = new Socket(clientHostName,clientPort);
                 System.out.println("Connected to Client at Port "+clientPort);
 
-                processData(socket,imageCount);
+                //processData(socket,imageCount);
+                processData(socket);
                 System.out.println("Processed Images and Returned to Client");
                 
             } catch(IOException e){

@@ -77,10 +77,8 @@ public class CloudImageClient {
             oos.writeObject(originalByteImage);
 
         }
-
-        //get input stream and receive byte array image
-
-        
+        // Tell Equalizer that you are done:
+        oos.writeObject(null);
 
         File out_dir_f = new File(out_dir);
         if (!out_dir_f.exists()){
