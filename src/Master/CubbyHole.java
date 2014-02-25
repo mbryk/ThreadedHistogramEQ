@@ -20,6 +20,14 @@ public class CubbyHole {
        numProds--;
        notifyAll();
     }
+
+    public int getQueueRatio(){
+        return queue.remainingCapacity();
+    }
+
+    public int getProducerCount(){
+        return numProds;
+    }
     
     public synchronized boolean isDone() {
         return numProds==0;
