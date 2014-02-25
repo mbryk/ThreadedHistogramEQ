@@ -1,5 +1,6 @@
 import java.net.*;
 import java.io.*;
+import java.lang.Object;
 
 public class MasterObject{
 
@@ -18,9 +19,11 @@ public class MasterObject{
 	}
 
 	@Override 
-	public boolean equals(MasterObject o){
+	public boolean equals(Object o){
 		//return ia==o.ia
-		return (ia==o.ia && p==o.p);
+		if(o == null) return false;
+		if(this.getClass() != o.getClass()) return false;
+		return (ia==((MasterObject) o).ia && p==((MasterObject) o).p);
 	}
 
 }

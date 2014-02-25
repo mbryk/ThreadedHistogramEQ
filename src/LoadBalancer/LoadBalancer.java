@@ -12,7 +12,9 @@ public class LoadBalancer {
     	int clientPort = Integer.parseInt(args[0]);
     	int masterPort = Integer.parseInt(args[1]);
 
-    	new clientSideLB(c, clientPort).start();
-    	new masterSideLB(c, masterPort).start();        
+        ActiveMasters am = new ActiveMasters();
+
+    	new ClientSideLB(am, clientPort).start();
+    	new MasterSideLB(am, masterPort).start();        
 	}
 }

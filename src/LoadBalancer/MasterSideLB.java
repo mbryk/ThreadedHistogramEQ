@@ -1,5 +1,5 @@
 import java.io.*;
-
+import java.net.*;
 
 public class MasterSideLB extends Thread {
 	private ActiveMasters masters;
@@ -10,7 +10,7 @@ public class MasterSideLB extends Thread {
 		portNumber = port;
 	}
 
-	public run(){
+	public void run(){
 		try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
             while (true) {
                 Socket s = serverSocket.accept();
@@ -18,7 +18,7 @@ public class MasterSideLB extends Thread {
 
                 masters.putSocket(s);
             }
-            serverSocket.close();
+            //serverSocket.close();
         } catch (IOException e) {
             System.err.println(e);
             System.exit(-1);
