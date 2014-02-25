@@ -12,7 +12,7 @@ public class ClientSideLB extends Thread {
 
 	public void run(){
 
-		try (ServerSocket serverSocket = new ServerSocket(3500)) { 
+		try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
             while (true) {
                 System.out.println("Listening for Clients");
                 Socket s = serverSocket.accept();

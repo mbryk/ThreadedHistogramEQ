@@ -17,7 +17,8 @@ public class ActiveMasters{
 			PrintWriter pw = new PrintWriter(s.getOutputStream(), true);
 			BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			InetAddress ia = s.getInetAddress();
-			int p = s.getPort();
+			String p_str = br.readLine();
+			int p = Integer.parseInt(p_str);
 
 			masterList.add(new MasterObject(s, pw, br, ia, p));
 		} catch (IOException e){
