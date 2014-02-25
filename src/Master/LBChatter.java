@@ -8,11 +8,12 @@ public class LBChatter extends Thread {
     private int portNumber;
     private static Sigar sigar;
 
-    public LBChatter(CubbyHole cubbyhole, String host, int port) {
+    public LBChatter(CubbyHole cubbyhole, String host, int port, int clientPort) {
         super("TwoListeners");
         c = cubbyhole;
         hostName = host;
         portNumber = port;
+        this.clientPort = clientPort;
         sigar = new Sigar();
     }
 
@@ -21,6 +22,8 @@ public class LBChatter extends Thread {
         BufferedReader inFromLB = new BufferedReader(
             new InputStreamReader(sLB.getInputStream()));
         PrintWriter outToLB = new PrintWriter(sLB.getOutputStream(), true);
+
+        outToLB.println(clientPort);
 
         while (true) {
             // Hangs until asked for info
