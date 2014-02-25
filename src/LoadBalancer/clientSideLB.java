@@ -3,10 +3,6 @@ import java.io.*;
 import org.hyperic.sigar.*;
 
 public class clientSideLB extends Thread {
-	private ArrayList<Socket> masterSocketList = new ArrayList<Socket>();
-	private ArrayList<PrintWriter> masterWriterList = new ArrayList<PrintWriter>();
-	private ArrayList<BufferedReader> masterReaderList = new ArrayList<BufferedReader>();
-
 
 	protected static Data getMasterInfo(){
 		private static Sigar sigar = new Sigar();

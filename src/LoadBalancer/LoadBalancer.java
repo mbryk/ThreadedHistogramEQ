@@ -12,10 +12,6 @@ public class LoadBalancer {
     	int clientPort = Integer.parseInt(args[0]);
     	int masterPort = Integer.parseInt(args[1]);
 
-    	private ArrayList<Socket> masterSocketList = new ArrayList<Socket>();
-		private ArrayList<PrintWriter> masterWriterList = new ArrayList<PrintWriter>();
-		private ArrayList<BufferedReader> masterReaderList = new ArrayList<BufferedReader>();
-
     	new clientSideLB(c, clientPort).start();
     	new masterSideLB(c, masterPort).start();        
 	}

@@ -1,18 +1,17 @@
 public class ActiveMasters{
-	private ArrayList<Socket> masterSocketList = new ArrayList<Socket>();
-	private ArrayList<PrintWriter> masterWriterList = new ArrayList<PrintWriter>();
-	private ArrayList<BufferedReader> masterReaderList = new ArrayList<BufferedReader>();
+	private ArrayList<MasterObject> masterList = new ArrayList<MasterObject>();
 
 	public synchronized void putSocket(Socket s) {
-		masterSocketList.add(s);
-		masterWriterList.add(new PrintWriter(s.getOutputStream(), true));
-		masterReaderList.add(new BufferedReader(new InputStreamReader(s.getInputStream())));
+		PrintWriter pw = new PrintWriter(s.getOutputStream(), true);
+		BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+		InetAddress ia = s.getInetAddress();
+		int p = s.getPort();
+
+		masterList.add(MasterObject(s, pw, br, ia, p));
 	}
 
 	private synchronized void removeSocket(int i){
-		masterSocketList.remove(i);
-		masterWriterList.remove(i);
-		masterReaderList.remove(i);
+		masterList.remove(i);
 	}
 
 	public synchronized Data requestStats(){
@@ -21,6 +20,12 @@ public class ActiveMasters{
 			masterWriterList.get(i).println("Give me your stats!");
 			String queueRatio_str = masterReaderList.get(i).readLine();
 			String numProducers_str = masterReaderList.get(i).readLine();
+			String SigarInfo
+			calcScore
+			if calcScore > bestScore{
+				bestScore = calcScore;
+				bestIndex = i;
+			}
 		}
 	}
 }
