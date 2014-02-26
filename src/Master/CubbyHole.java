@@ -4,43 +4,35 @@ import java.lang.Object;
 import java.util.concurrent.TimeUnit;
 
 public class CubbyHole {
-    private Data contents;
     private BlockingQueue<Data> queue = new ArrayBlockingQueue<>(10);
-    private boolean available = false;
     private static int numProds = 0;
 
     public CubbyHole() {}
     
-    public synchronized void addProducer() {
+    public void addProducer() {
         numProds++;
-       notifyAll();
     }
-
-    public synchronized void subProducer() {
+    public void subProducer() {
        numProds--;
-       notifyAll();
+    }
+    public boolean isDone() {
+        return numProds==0;
     }
 
+    //for Lb stats:
     public int getQueueRatio(){
         return queue.remainingCapacity();
     }
-
     public int getProducerCount(){
         return numProds;
     }
-    
-    public synchronized boolean isDone() {
-        return numProds==0;
-    }
-    
-    public synchronized Data get() {
+
+    public Data get() {
 
         Data ret = null;
         try{
             if (!isDone()){
-                System.out.println("Giving Data");
                 ret = queue.take();
-                //ret = queue.poll(2, TimeUnit.SECONDS);
             }
         } catch (InterruptedException e){
             System.err.println("Take error: " + e);
@@ -49,8 +41,7 @@ public class CubbyHole {
         return ret;
     }
  
-    public synchronized void put(Data value) {
-
+    public void put(Data value) {
         try{
             queue.put(value);
         } catch (InterruptedException e){

@@ -29,7 +29,11 @@ public class LBChatter extends Thread {
 
             while (true) {
                 // Hangs until asked for info
-                inFromLB.readLine();
+                String request = inFromLB.readLine();
+                if (request == null) {
+                    System.out.println("The LB has Died :(");
+                    System.exit(-1);
+                }
 
                 System.out.println("LB Pinged Me");
                 outToLB.println(c.getQueueRatio());

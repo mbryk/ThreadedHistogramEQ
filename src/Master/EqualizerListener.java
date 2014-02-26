@@ -37,7 +37,7 @@ public class EqualizerListener extends Thread {
                 Socket s = serverSocket.accept();
                 System.out.println("Have New Waiting Processing Server");
                 
-                if ( haveData ||  ((data=cubbyhole.get())!=null)  ) { //value = null if contents of cubbyhole have been removed
+                if ( !haveData )  {data=cubbyhole.get();}// { //value = null if contents of cubbyhole have been removed
                     System.out.println("Sending New Assignment: "+data.ia);
                     System.out.println("Closed?"+s.isClosed());
                     System.out.println("Connected?"+s.isConnected());
@@ -55,9 +55,9 @@ public class EqualizerListener extends Thread {
                         System.out.println("He was impatient. Let's look for another processing server.");
                     }
 
-            	} else {s.close(); break;}
+//            	} else {s.close(); break;}
             }
-            serverSocket.close();
+            //serverSocket.close();
         } catch (IOException e) {
             System.err.println(e);
             System.exit(-1);

@@ -7,8 +7,8 @@ public class ClientListener extends Thread {
 
     public ClientListener(CubbyHole c, int port) {
         super("TwoListeners");
-        cubbyhole = c;
-        portNumber = port;
+        this.cubbyhole = c;
+        this.portNumber = port;
         cubbyhole.addProducer();
     }
 
