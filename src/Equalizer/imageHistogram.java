@@ -9,6 +9,7 @@ public class imageHistogram {
     public ArrayList<int[]> hist;
 
     // Return an ArrayList containing histogram values for separate R, G, B channels
+    //put in full or piece of image and receive the hist for that part
     public imageHistogram(BufferedImage input) {
  
         int[] rhistogram = new int[256];

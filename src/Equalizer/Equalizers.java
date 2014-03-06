@@ -29,6 +29,20 @@ public class Equalizers{
                 ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
                 BufferedImage image = ImageIO.read(bais);
                 array.addImage(image,i);
+
+//
+//
+// if (imSize > thresh)
+    // split up, run imageHistogram on each piece on another node
+    // wait for all, as they come back add to ArrayList of ArrayLists
+    // run combineHists on ArrayLists<ArrayLists<int[]>>
+    // run calcScaleFactor
+    // ask Master for more Equalizers again
+    // run eq
+//
+//
+
+
                 Runnable worker = new ProcessingWorkerThread(array,i);
                 executor.execute(worker);
 
@@ -37,6 +51,15 @@ public class Equalizers{
             int imageCount = i;
 
             executor.shutdown();
+
+
+//
+//
+//is there no .join or something in order to wait for things
+//rather than running a while loop??
+//
+//
+
             while (!executor.isTerminated()) {}
             System.out.println("Finished all threads");
             

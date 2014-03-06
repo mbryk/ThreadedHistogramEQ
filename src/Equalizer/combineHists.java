@@ -9,6 +9,9 @@ public class combineHists {
     public ArrayList<int[]> combined;
     private ArrayList<int[]> hist1;
 
+
+    //put in an ArrayList of ArrayLists containing hists for all image pieces
+    //returns full histogram of image
     public combineHists(ArrayList<ArrayList<int[]>> histList) {
 		int[] rhistogram = new int[256];
         int[] ghistogram = new int[256];
