@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo $DIR
+
+ClientListener=4000
+EqualizersListener=5000
+LB_HN=127.0.0.1
+LB_P=6000
+
+cd "${DIR}/Master/out
+gnome-terminal -x bash -c "java -classpath ../sigar.jar:. TwoListeners ${ClientListener} ${EqualizersListener} ${LB_HN} ${LB_P};bash"

@@ -25,6 +25,9 @@ public class Equalizers{
 
             while((originalByteImage = (byte[])ois.readObject())!=null){
              
+                int sizeInBytes = originalByteImage.length;
+                System.out.println("NUM BYTES: "+sizeInBytes);
+
                 //convert byte array to BufferedImage
                 ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
                 BufferedImage image = ImageIO.read(bais);

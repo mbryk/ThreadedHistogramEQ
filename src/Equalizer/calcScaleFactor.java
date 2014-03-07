@@ -6,11 +6,12 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 public class calcScaleFactor {
+    public ArrayList<int[]> imageLUT;
 
-	public calcScaleFactor(ArrayList<int[]> imageHist){
+	public calcScaleFactor(ArrayList<int[]> imageHist, int imPixels){
         
         // Create the lookup table
-        ArrayList<int[]> imageLUT = new ArrayList<int[]>();
+        imageLUT = new ArrayList<int[]>();
  
         // Fill the lookup table
         int[] rhistogram = new int[256];
@@ -24,13 +25,11 @@ public class calcScaleFactor {
         long sumr = 0;
         long sumg = 0;
         long sumb = 0;
-
-//NEED input.getWidth and input.getHeight
-
  
         // Calculate the scale factor
-        float scale_factor = (float) (255.0 / (input.getWidth() * input.getHeight()));
- 
+        //float scale_factor = (float) (255.0 / (input.getWidth() * input.getHeight()));
+        float scale_factor = (float) (255.0 / (imPixels));
+        
         for(int i=0; i<rhistogram.length; i++) {
             sumr += imageHist.get(0)[i];
             int valr = (int) (sumr * scale_factor);
@@ -57,9 +56,6 @@ public class calcScaleFactor {
         imageLUT.add(rhistogram);
         imageLUT.add(ghistogram);
         imageLUT.add(bhistogram);
- 
-        return imageLUT;
-
 	}
 
 }

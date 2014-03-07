@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
-public class combineHists {
+public class combineHists2 {
     public ArrayList<int[]> combined;
 
-    public combineHists(ArrayList<int[]> hist1, ArrayList<int[]> hist2) {
+    public combineHists2(ArrayList<int[]> hist1, ArrayList<int[]> hist2) {
 		int[] rhistogram = new int[256];
         int[] ghistogram = new int[256];
         int[] bhistogram = new int[256];
