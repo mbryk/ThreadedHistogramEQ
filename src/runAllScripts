@@ -56,12 +56,12 @@ do
 	E2M=$(( ${Equalizer2Master} + ${i} ))
 
 	cd "${DIR}/Master/out"
-	gnome-terminal -x bash -c "java -classpath ../sigar.jar:. TwoListeners ${C2M} ${E2M} ${LB_HN} ${Master2LB};bash"
+	gnome-terminal -x bash -c "java -classpath ../sigar.jar:. TwoListeners ${C2M} ${E2M} ${LB_HN} ${Master2LB}"
 
 	for (( j = 0; j<${numWorkers}; j++))
 	do
 		cd "${DIR}/Equalizer/out"
-		gnome-terminal -x bash -c "java Equalizers ${M_HN} ${E2M};bash"
+		gnome-terminal -x bash -c "java Equalizers ${M_HN} ${E2M}"
 	done
 
 done
@@ -70,6 +70,19 @@ done
 for (( i = 0; i<${numClients}; i++))
 do
 	cd "${DIR}/Client/out"
-	gnome-terminal -x bash -c "time java CloudImageClient ${LB_HN} ${Client2LB} ../imDir NewStuff_${i};bash"
+    echo "HERE"
+	command="java CloudImageClient ${LB_HN} ${Client2LB} ../imDir NewStuff_${i}"
+	#gnome-terminal -x bash -c "export utime=$( TIMEFORMAT='%E';time (${command}) 2>&1 1>/dev/null );echo ${utime} > TEST_${i}; nc localhost 1200 < TEST_${i}"
+    gnome-terminal -x bash -c " echo $( TIMEFORMAT='%E';time (${command}) 2>&1 1>/dev/null ) > TEST_0
+     nc localhost 1200 < TEST_${i}"
 
 done
+
+total=0
+for (( i = 0; i<${numClients}; i++))
+do
+    new=$( nc -l 1200 )
+    total=$( bc <<< "${total} + ${new}" )
+done
+
+echo $total
