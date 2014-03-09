@@ -12,6 +12,7 @@ public class Equalizers{
     protected static final int THREAD_POOL_SIZE = 5;
     private static String masterHostName;
     private static int masterPortNumber;
+    private static int masterRequestPortNumber;
 
     public static void processFullData(Socket socket) {
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
@@ -40,7 +41,18 @@ public class Equalizers{
                 if(imParts>workerCount*2){ //If I can't make it through the image in 2 go-rounds, then ask for help.
                     // This function will use the member variables of this class of the master info.
                     // It will return the amount of helpers that are being allotted.
-                    int helpersComing = askMaster(imParts); 
+                    
+                    Socket reqHelpers = socket(masterHostName, masterRequestPortNumber);
+                    BufferedReader inFromMReq = new BufferedReader(
+                        new InputStreamReader(reqHelpers.getInputStream()));
+                    PrintWriter outToMReq = new PrintWriter(reqHelpers.getOutputStream(), true);
+                    outToMReq.println(imParts);
+                    outToMReq.println(requestType);
+
+                    String helpersComing_str = inFromMReq.readline();
+                    int helpersComing = Integer.parseInt(helpersComing_str);
+
+                    //int helpersComing = askMaster(imParts); 
                     try(ServerSocket getHelpers = helpersComing){
                         while(int h=0;h<helpersComing;h++){
                             Socket helper = getHelpers.accept();
@@ -98,12 +110,13 @@ public class Equalizers{
     
     public static void main(String[] args) {
         if (args.length != 2){
-            System.err.println("Usage java Equalizers <Master host name> <Master port number>");
+            System.err.println("Usage java Equalizers <Master host name> <Master port number> <Master's Requesting Port>");
             System.exit(1);
         }        
 
         masterHostName = args[0];
         masterPortNumber = Integer.parseInt(args[1]);
+        masterRequestPortNumber = Integer.parseInt(args[2]);
         int i;
 
         while(true){

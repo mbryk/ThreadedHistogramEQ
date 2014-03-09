@@ -44,6 +44,7 @@ public class EqualizerListener extends Thread {
                 	if(ping(s)){
                         System.out.println("Sending New Assignment");
                         PrintWriter outToEqualizer = new PrintWriter(s.getOutputStream(), true);
+                        outToEqualizer.println(data.requestType);
                         outToEqualizer.println(data.ia.getHostName());
                         outToEqualizer.println(data.p);
 
