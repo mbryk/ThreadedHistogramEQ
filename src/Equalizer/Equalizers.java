@@ -10,8 +10,10 @@ import java.io.*;
 
 public class Equalizers{
     protected static final int THREAD_POOL_SIZE = 5;
+    private static String masterHostName;
+    private static int masterPortNumber;
 
-    public static void processData(Socket socket) {
+    public static void processFullData(Socket socket) {
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
         BufferedImageArray array = new BufferedImageArray();
         int i = 0;
@@ -23,7 +25,7 @@ public class Equalizers{
             byte[] originalByteImage, receivedByteImage;
             ObjectInputStream ois = new ObjectInputStream(inFromClient);
 
-            while((originalByteImage = (byte[])ois.readObject())!=null){
+            if((originalByteImage = (byte[])ois.readObject())!=null){
              
                 int sizeInBytes = originalByteImage.length;
                 System.out.println("NUM BYTES: "+sizeInBytes);
@@ -31,9 +33,35 @@ public class Equalizers{
                 //convert byte array to BufferedImage
                 ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
                 BufferedImage image = ImageIO.read(bais);
-                array.addImage(image,i);
 
-//
+                int imParts = splitUp(array, image); // Add pieces of image to the array and return array size
+                int workerCount = THREAD_POOL_SIZE*2;
+
+                if(imParts>workerCount*2){ //If I can't make it through the image in 2 go-rounds, then ask for help.
+                    // This function will use the member variables of this class of the master info.
+                    // It will return the amount of helpers that are being allotted.
+                    int helpersComing = askMaster(imParts); 
+                    try(ServerSocket getHelpers = helpersComing){
+                        while(int h=0;h<helpersComing;h++){
+                            Socket helper = getHelpers.accept();
+                        }
+                    }
+                    
+                } else{
+                    for(i=0;i<imParts;i++){
+                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i);    
+                        executor.execute(worker);
+                        executor.shutdown();
+                        while (!executor.isTerminated()) {}
+                    }
+                    for(i=0;i<imParts;i++){
+                        Runnable worker = new EqualizingWorkerThread(array,histogram,i);    
+                        executor.execute(worker);
+                        executor.shutdown();
+                        while (!executor.isTerminated()) {}
+                    }    
+                    BufferedImage processedImage = recombineImage(array);                
+                }
 //
 // if (imSize > thresh)
     // split up, run imageHistogram on each piece on another node
@@ -44,42 +72,24 @@ public class Equalizers{
     // run eq
 //
 //
-
-
-                Runnable worker = new ProcessingWorkerThread(array,i);
-                executor.execute(worker);
-
-                i++;
             }
-            int imageCount = i;
-
-            executor.shutdown();
-
-
 //
 //
 //is there no .join or something in order to wait for things
 //rather than running a while loop??
 //
 //
-
-            while (!executor.isTerminated()) {}
             System.out.println("Finished all threads");
             
             // workers are done
             ObjectOutputStream oos = new ObjectOutputStream(outToClient);
 
-            for(i=0;i<imageCount;i++){
-                //convert to byte array
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(array.getImage(i),"jpg", baos);
-                baos.flush();
-                receivedByteImage = baos.toByteArray();
-            
-                //send equalized image
-                
-                oos.writeObject(receivedByteImage);
-            }
+            //convert to byte array
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(processedImage,"jpg", baos);
+            baos.flush();
+            receivedByteImage = baos.toByteArray();
+            oos.writeObject(receivedByteImage);
             socket.close();
         }
         catch (IOException e) { e.printStackTrace(); }
@@ -92,8 +102,8 @@ public class Equalizers{
             System.exit(1);
         }        
 
-        String hostName = args[0];
-        int portNumber = Integer.parseInt(args[1]);
+        masterHostName = args[0];
+        masterPortNumber = Integer.parseInt(args[1]);
         int i;
 
         while(true){
@@ -107,20 +117,32 @@ public class Equalizers{
                 String receivedPing = inFromMaster.readLine(); //accept ping
                 outToMaster.println(receivedPing);
 
-                String clientHostName = inFromMaster.readLine();
-                String clientPortString = inFromMaster.readLine();
-                //String imageCountString = inFromMaster.readLine();
-                System.out.println("Received Assignment");
+                String assignmentType = inFromMaster.readLine();
 
-                int clientPort = Integer.parseInt(clientPortString);
-                //int imageCount = Integer.parseInt(imageCountString);
+                String hostName = inFromMaster.readLine();
+                String portString = inFromMaster.readLine();
+                int receivedPort = Integer.parseInt(portString);
 
-                Socket socket = new Socket(clientHostName,clientPort);
-                System.out.println("Connected to Client at Port "+clientPort);
+                Socket socket = new Socket(hostName,receivedPort);
 
-                //processData(socket,imageCount);
-                processData(socket);
-                System.out.println("Processed Images and Returned to Client");
+                if(assignmentType=="FullImage"){
+                    // The socket you just opened is with the Client                    
+
+                    // This is for telling the client which image to send.
+                    String imageNumString = inFromMaster.readLine();
+                    int imageNum = Integer.parseInt(imageNumString);
+                    
+                    processFullData(socket,imageNum);
+                    
+                    System.out.println("Processed Image and Returned to Client");
+
+                } else{ // Your Job is to help out
+                    // The socket you just opened is with the lead producer
+                    // Note: This guy does NOT need to know the index of the image part he is getting.
+                    processPartData(socket,assignmentType);
+
+                    System.out.println("Processed Part of Image and Returned to Lead Producer");
+                }
                 
             } catch(IOException e){
                 System.err.println(e);
