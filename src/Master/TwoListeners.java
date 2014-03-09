@@ -2,7 +2,7 @@ public class TwoListeners {
 	
     public static void main(String[] args) {
     	if (args.length != 4){
-            System.err.println("Usage: java TwoListeners <Client Port Number> <Equalizers Port Number> <LB Hostname> <LB Port>");
+            System.err.println("Usage: java TwoListeners <Client Port Number> <Equalizers Port Number> <LB Hostname> <LB Port> <Producer Port>");
             System.exit(1);
         }
 
@@ -10,6 +10,7 @@ public class TwoListeners {
     	int processingPort = Integer.parseInt(args[1]);
 
         int lbPort = Integer.parseInt(args[3]);
+        int producerPort = Integer.parseInt(args[4]);
 
 
     	CubbyHole c = new CubbyHole();
@@ -17,5 +18,6 @@ public class TwoListeners {
         new LBChatter(c, args[2],lbPort, clientPort).start();
     	new ClientListener(c, clientPort).start();
     	new EqualizerListener(c, processingPort).start();
+        new ProducerListener(c,processingPort).start();
     }
 }

@@ -27,10 +27,10 @@ public class ClientListener extends Thread {
                 InetAddress ia = s.getInetAddress();
                 s.close();
                 
-                putData(new Data(ia,p));
+                putData(new Data(ia,p,0));
             }
         } catch (IOException e) {
-            System.err.println(e);
+            System.err.println("ClientListener Error: "+e);
             System.exit(-1);
         }
         

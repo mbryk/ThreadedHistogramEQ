@@ -4,7 +4,8 @@ import java.lang.Object;
 import java.util.concurrent.TimeUnit;
 
 public class CubbyHole {
-    private BlockingQueue<Data> queue = new ArrayBlockingQueue<>(10);
+    public int Qsize = 50;
+    private BlockingQueue<Data> queue = new ArrayBlockingQueue<>(Qsize);
     private static int numProds = 0;
 
     public CubbyHole() {}
