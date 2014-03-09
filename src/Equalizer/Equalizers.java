@@ -9,6 +9,10 @@ import java.net.*;
 import java.io.*;
 
 public class Equalizers{
+    public static final int FULL_IMAGE = 0;
+    public static final int HELPER_HISTOGRAM = 1;
+    public static final int HELPER_SCALING = 2;
+
     protected static final int THREAD_POOL_SIZE = 5;
     private static String masterHostName;
     private static int masterPortNumber;
@@ -130,7 +134,8 @@ public class Equalizers{
                 String receivedPing = inFromMaster.readLine(); //accept ping
                 outToMaster.println(receivedPing);
 
-                String assignmentType = inFromMaster.readLine();
+                String assignmentType_str = inFromMaster.readLine();
+                int assignmentType = Integer.parseInt(assignmentType_str);
 
                 String hostName = inFromMaster.readLine();
                 String portString = inFromMaster.readLine();
@@ -138,7 +143,7 @@ public class Equalizers{
 
                 Socket socket = new Socket(hostName,receivedPort);
 
-                if(assignmentType=="FullImage"){
+                if(assignmentType==FULL_IMAGE){
                     // The socket you just opened is with the Client                    
 
                     // This is for telling the client which image to send.

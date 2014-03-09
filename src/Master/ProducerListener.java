@@ -2,6 +2,10 @@ import java.net.*;
 import java.io.*;
 
 public class ProducerListener extends Thread {
+    public static final int FULL_IMAGE = 0;
+    public static final int HELPER_HISTOGRAM = 1;
+    public static final int HELPER_SCALING = 2;
+
 	private int portNumber;
 	private CubbyHole cubbyhole;
 
@@ -37,13 +41,13 @@ public class ProducerListener extends Thread {
 	            PrintWriter outToP = new PrintWriter(sLB.getOutputStream(), true);
 	            String numRequested_str = inFromP.readline();
 	            String requestType_str = inFromP.readline();
-	            if (numRequested_str == null | requestType_str == null){
+	            if (numRequested_str == null || requestType_str == null){
 	            	System.out.println("Failed Request");
 	            	return;
 	            }
 	            int numRequested = Integer.parseInt(numRequested_str);
 	            int requestType = Integer.parseInt(requestType_str);
-	            if (requestType != 1 & requestType != 2){
+	            if (requestType != HELPER_SCALING && requestType != HELPER_HISTOGRAM){
 	            	System.out.println("Failed Request: Incorrect requestType");
 	            	return;
 	            }
