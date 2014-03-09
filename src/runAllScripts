@@ -70,6 +70,6 @@ done
 for (( i = 0; i<${numClients}; i++))
 do
 	cd "${DIR}/Client/out"
-	time gnome-terminal -x bash -c "java CloudImageClient ${LB_HN} ${Client2LB} ../imDir NewStuff_${i};bash"
+	gnome-terminal -x bash -c "time java CloudImageClient ${LB_HN} ${Client2LB} ../imDir NewStuff_${i};bash"
 
 done
