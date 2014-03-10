@@ -1,8 +1,8 @@
 import java.awt.image.BufferedImage;
 
 public class ProcessingWorkerThread implements Runnable {
-	private BufferedImageArray array;
-	private int index;
+    private BufferedImageArray array;
+    private int index;
 
     public ProcessingWorkerThread(BufferedImageArray array, int imageNumber) {
         this.array = array;
@@ -11,8 +11,8 @@ public class ProcessingWorkerThread implements Runnable {
  
     @Override
     public void run() {
-    	BufferedImage original = array.getImage(index);
-    	Histogram hist = new Histogram(original);
+        BufferedImage original = array.getImage(index);
+        Histogram hist = new Histogram(original);
         array.addImage(hist.equalized,index);
     }
 }

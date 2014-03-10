@@ -84,6 +84,8 @@ public class CloudImageClient {
         OutputStream outToServer = echoSocket.getOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(outToServer);
 
+        // *****This is gonna need tochange drastically. Open up an executor pool to send images...******
+
         //loop through images in directory
         for(String fileName : fileNames) {
             System.out.println(fileName);
