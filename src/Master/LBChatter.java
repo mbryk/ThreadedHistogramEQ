@@ -37,7 +37,8 @@ public class LBChatter extends Thread {
 
                 System.out.println("LB Pinged Me");
                 outToLB.println(c.getQueueRatio());
-                outToLB.println(c.getProducerCount());
+                // cf. ProducerListener. This doesn't actually tell us how many equalizers we have. Just how many clientlisteners we have (1) :(
+                outToLB.println(c.getProducerCount()); 
                 try{outToLB.println(sigar.getLoadAverage()[0]);}
                 catch (SigarException e){
                     System.err.println("Sigar error:"+e);

@@ -18,6 +18,6 @@ public class TwoListeners {
         new LBChatter(c, args[2],lbPort, clientPort).start();
     	new ClientListener(c, clientPort).start();
     	new EqualizerListener(c, processingPort).start();
-        new ProducerListener(c,processingPort).start();
+        new ProducerListener(c,producerPort).start();
     }
 }
