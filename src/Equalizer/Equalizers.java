@@ -23,9 +23,15 @@ public class Equalizers{
     private String clientHostName;
     private int returnPort;
 
-    protected int splitUp(BufferedImage image,int size){
+    protected int judgeImage(int size, int workers){
         int pieceSize = 10000*2^10; // 10 MB
         int pieces = size/pieceSize + 1;
+        if(pieces==1) return 0;
+        else if(pieces<workerCount*2) return 1;
+        else return 2;
+    }
+    
+    protected void splitUp(BufferedImage image,int pieces){
         if(pieces>1){
             int height = image.getHeight(); int width = image.getWidth();
             int interval = height/pieces;
@@ -36,8 +42,6 @@ public class Equalizers{
                 array.addImage(subImage);
             }
         } else array.addImage(image);
-
-        return pieces;
     }
 
     protected BufferedImage recombineImage(BufferedImage oldImage){
@@ -55,9 +59,7 @@ public class Equalizers{
     }
 
     public static void processFullData(Socket socket) {
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
         array = new BufferedImageArray();
-        int i = 0;
 
         try (
             InputStream inFromClient = socket.getInputStream();
@@ -78,59 +80,67 @@ public class Equalizers{
             ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
             BufferedImage image = ImageIO.read(bais);
 
-            int imParts = splitUp(image,sizeInBytes); // Add pieces of image to the array and return array size
             int workerCount = THREAD_POOL_SIZE*2;
+            int judge = judgeImage(sizeInBytes,workerCount); // Return 0 if you can do it in one thread. 1 if you can do it with a pool. 2 if you need help.
 
-            if(imParts>workerCount*2){ //If I can't make it through the image in 2 go-rounds, then ask for help.
-                // This function will use the member variables of this class of the master info.
-                // It will return the amount of helpers that are being allotted.
-                
-                Socket reqHelpers = socket(masterHostName, masterRequestPortNumber);
-                BufferedReader inFromMReq = new BufferedReader(
-                    new InputStreamReader(reqHelpers.getInputStream()));
-                PrintWriter outToMReq = new PrintWriter(reqHelpers.getOutputStream(), true);
-                outToMReq.println(imParts);
-                outToMReq.println(requestType);
 
-                String helpersComing_str = inFromMReq.readline();
-                int helpersComing = Integer.parseInt(helpersComing_str);
+            if(judge == 0){
+                BufferedImage original = array.getImage(index);
+                Histogram histogram = new Histogram(original);
+                array.addImage(histogram.equalized,index);
+            }            
+            else{
+                HistogramSplit histogram = new HistogramSplit();
 
-                try(ServerSocket getHelpers = helpersComing){
-                    while(int h=0;h<helpersComing;h++){
-                        Socket helper = getHelpers.accept();
-                    }
-                }
-                
-            } else{ // You can do it on your own!!
-                
-                if(imParts==1){
-                    BufferedImage original = array.getImage(index);
-                    Histogram histogram = new Histogram(original);
-                    array.addImage(histogram.equalized,index);
-                } else{
-                    HistogramSplit histogram = new HistogramSplit();
+                if(judge==1){
+                    ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+                    splitUp(image,workerCount); // Add pieces of image to the array and return array size
 
-                    for(i=0;i<imParts;i++){
-                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i);    
+                    for(i=0;i<workerCount;i++){
+                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i,1);    
                         executor.execute(worker);
-                        executor.shutdown();
-                        while (!executor.isTerminated()) {}
                     }
+                    executor.shutdown();
+                    while (!executor.isTerminated()) {}
 
-                    histogram.calcHistogramLUT()
+                    histogram.calcHistogramLUT();
                 
-                    for(i=0;i<imParts;i++){
-                        Runnable worker = new EqualizingWorkerThread(array,histogram,i);    
+                    for(i=0;i<workerCount;i++){
+                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i,2);    
                         executor.execute(worker);
-                        executor.shutdown();
-                        while (!executor.isTerminated()) {}
-                    }    
-                
-                    BufferedImage processedImage = recombineImage(image);                
+                    } 
+                    executor.shutdown();
+                    while (!executor.isTerminated()) {}
 
                     System.out.println("Finished all threads");
-                }
+                
+                } else { // You need help.
+                    for(int type=1;type<3;type++){
+                        Socket reqHelpers = socket(masterHostName, masterRequestPortNumber);
+                        BufferedReader inFromMReq = new BufferedReader(
+                            new InputStreamReader(reqHelpers.getInputStream()));
+                        PrintWriter outToMReq = new PrintWriter(reqHelpers.getOutputStream(), true);
+                        outToMReq.println(imParts);
+                        outToMReq.println(requestType);
 
+                        String helpersComing_str = inFromMReq.readline();
+                        int helpersComing = Integer.parseInt(helpersComing_str);
+
+                        splitUp(image,helpersComing);
+
+                        try(ServerSocket getHelpers = helpersComing){
+                            while(int h=0;h<helpersComing;h++){
+                                Socket helper = getHelpers.accept();
+                                new HelperCommsThread(helper,type,array.getImage(h),histogram).start();
+                            }
+                            if(type==1){
+                                histogram.calcHistogramLUT();
+                                array.clearArray();
+                            } 
+                        }
+                    }
+                }
+                BufferedImage processedImage = recombineImage(image);
             }
 
             Socket returnSocket = new Socket(clientHostName, returnPort);
@@ -153,6 +163,43 @@ public class Equalizers{
         catch (ClassNotFoundException e){ e.printStackTrace(); }
     }
     
+    public static void processPartData(Socket socket, int assignmentType){
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+        int workerCount = THREAD_POOL_SIZE*2;
+
+        InputStream inFromClient = socket.getInputStream();
+        byte[] originalByteImage;
+        ObjectInputStream ois = new ObjectInputStream(inFromClient);
+
+        originalByteImage = (byte[])ois.readObject();
+        ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
+        BufferedImage image = ImageIO.read(bais);
+
+        splitUp(image,workerCount);
+
+        HistogramSplit histogram = new HistogramSplit();
+        ArrayList<int[]> histLUT;
+        if(assignmentType==2){
+            histLUT = socket.receiveLUT();
+            histogram.setLUT(histLUT);
+        }
+        for(i=0;i<workerCount;i++){
+            Runnable worker = new HistogrammingWorkerThread(array,histogram,i,assignmentType);    
+            executor.execute(worker);
+        } 
+        executor.shutdown();
+        while (!executor.isTerminated()) {}
+
+        if(assignmentType==1){
+            histogram.calcHistogramLUT();
+            histLUT = histogram.getLUT();
+            socket.send(histLUT);
+        } else {
+            BufferedImage processedImage = recombineImage(image);
+            socket.send(processedImage);
+        }
+    }
+
     public static void main(String[] args) {
         if (args.length != 3){
             System.err.println("Usage java Equalizers <Master host name> <Master port number> <Master's Requesting Port>");

@@ -19,6 +19,13 @@ public class HistogramSplit {
         histogram.add(gempty);
         histogram.add(bempty);
     }
+
+    public ArrayList<int[]> getLUT(){
+        return histLUT;
+    }
+    public setLUT(ArrayList<int[]> myLUT){
+        histLUT = myLUT;
+    }
  
     public ArrayList<int[]> makeHist(BufferedImage original){
         int[] rhistogram = new int[256];

@@ -18,4 +18,8 @@ public class BufferedImageArray {
 		else 
 			array.add(index,image);
 	}
+
+	public void clearArray(){
+		array.clear();
+	}
 }
