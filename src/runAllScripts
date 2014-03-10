@@ -69,6 +69,7 @@ done
 
 for (( i = 0; i<${numClients}; i++))
 do
+    sleep 3
 	cd "${DIR}/Client/out"
     echo "HERE"
 	command="java CloudImageClient ${LB_HN} ${Client2LB} ../imDir NewStuff_${i}"
