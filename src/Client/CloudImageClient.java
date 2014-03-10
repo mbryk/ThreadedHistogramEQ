@@ -80,14 +80,14 @@ public class CloudImageClient {
         System.out.println("Port: "+originalPort);
 
         //seaprate thread to send files
-        new writeToProcessors(sSend, fileNames, returnPort).start();
+        new writeToProcessors(sSend, fileNames, returnPort, in_dir).start();
 
         //receive in this thread
         ServerSocket sRcv = new ServerSocket(returnPort);
         
         for(int i=0; i<fileNames.length; i++) {
             Socket rcvSocket = sRcv.accept();
-            InputStream inFromServer = echoSocket.getInputStream();
+            InputStream inFromServer = rcvSocket.getInputStream();
             ObjectInputStream ois = new ObjectInputStream(inFromServer);
             BufferedReader inFromP = new BufferedReader(
                 new InputStreamReader(rcvSocket.getInputStream()));

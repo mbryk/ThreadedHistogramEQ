@@ -5,11 +5,13 @@ public class writeToProcessors extends Thread{
 	private ServerSocket s2;
 	private String[] filenames;
 	private int returnPort;
+	private String in_dir;
 
-	public writeToProcessors(ServerSocket s2, String[] filenames, int returnPort){
+	public writeToProcessors(ServerSocket s2, String[] filenames, int returnPort, String in_dir){
 		this.s2 = s2;
 		this.filenames = filenames;
 		this.returnPort = returnPort;
+		this.in_dir = in_dir;
 	}
 
 	public void run(){
