@@ -73,51 +73,37 @@ public class CloudImageClient {
         //initiate client socket to Master
         System.out.println("Connecting To Master Server");
         Socket s = new Socket(masterHostName, masterPort);
+        int originalPort = s.getLocalPort();
+        int returnPort = originalPort+1;
         s.setReuseAddress(true);
-        ServerSocket s2 = new ServerSocket(s.getLocalPort());
+        ServerSocket sSend = new ServerSocket(originalPort);
+        System.out.println("Port: "+originalPort);
+
+        //seaprate thread to send files
+        new writeToProcessors(sSend, fileNames, returnPort).start();
+
+        //receive in this thread
+        ServerSocket sRcv = new ServerSocket(returnPort);
         
-        System.out.println("Port: "+s2.getLocalPort());
-        Socket echoSocket = s2.accept();
-        System.out.println("Connected to Processing Server");
+        for(int i=0; i<fileNames.length; i++) {
+            Socket rcvSocket = sRcv.accept();
+            InputStream inFromServer = echoSocket.getInputStream();
+            ObjectInputStream ois = new ObjectInputStream(inFromServer);
+            BufferedReader inFromP = new BufferedReader(
+                new InputStreamReader(rcvSocket.getInputStream()));
 
-        //get output stream and sent byte array image
-        OutputStream outToServer = echoSocket.getOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(outToServer);
+            String filename = inFromP.readLine();
 
-        // *****This is gonna need tochange drastically. Open up an executor pool to send images...******
+            byte[] receivedByteImage = (byte[])ois.readObject();
+            ByteArrayInputStream bais = new ByteArrayInputStream(receivedByteImage);
+            BufferedImage received = ImageIO.read(bais);
 
-        //loop through images in directory
-        for(String fileName : fileNames) {
-            System.out.println(fileName);
-
-            File ifile = new File(in_dir+"/"+fileName);
-            BufferedImage original = ImageIO.read(ifile);
+            //write image to file
+            File ofile = new File(out_dir+"/"+fileName);
+            ImageIO.write(received,"jpg",ofile);
+            System.out.println("Image Received and saved at " + out_dir + "/" + fileName);
             
-            //convert original to byte array
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(original,"jpg", baos);
-            baos.flush();
-            byte[] originalByteImage = baos.toByteArray();
-            oos.writeObject(originalByteImage);
-
-        }
-        // Tell Equalizer that you are done:
-        oos.writeObject(null);
-
-        InputStream inFromServer = echoSocket.getInputStream();
-        ObjectInputStream ois = new ObjectInputStream(inFromServer);
-        
-        for(String fileName : fileNames) {
-
-                byte[] receivedByteImage = (byte[])ois.readObject();
-                ByteArrayInputStream bais = new ByteArrayInputStream(receivedByteImage);
-                BufferedImage received = ImageIO.read(bais);
-
-                //write image to file
-                File ofile = new File(out_dir+"/"+fileName);
-                ImageIO.write(received,"jpg",ofile);
-                System.out.println("Image Received and saved at " + out_dir + "/" + fileName);
-
+            rcvSocket.close();
         }
 
     }
