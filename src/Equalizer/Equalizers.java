@@ -7,6 +7,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.net.*;
 import java.io.*;
+import org.hyperic.sigar.*;
+
+import java.lang.Object;
+import java.lang.Runtime;
 
 public class Equalizers{
     public static final int FULL_IMAGE = 0;
@@ -22,6 +26,8 @@ public class Equalizers{
     private String filename;
     private String clientHostName;
     private int returnPort;
+
+    private static Sigar sigar;
 
     protected int judgeImage(int size, int workers){
         int pieceSize = 10000*2^10; // 10 MB
@@ -204,21 +210,39 @@ public class Equalizers{
         if (args.length != 3){
             System.err.println("Usage java Equalizers <Master host name> <Master port number> <Master's Requesting Port>");
             System.exit(1);
-        }        
+        }
+        public static final int THREADS =  Runtime.getRuntime().availableProcessors();   
 
         masterHostName = args[0];
         masterPortNumber = Integer.parseInt(args[1]);
         masterRequestPortNumber = Integer.parseInt(args[2]);
         int i;
 
+        sigar = new Sigar();
+
         while(true){
             try{
                 System.out.println("Waiting for Next Assignment");
-                Socket infoSocket = new Socket(masterHostName,masterPortNumber); // To EqualizerListener
+
+                //attach to Master to introduce
+                Socket s = new Socket(masterHostName,masterPortNumber); // To EqualizerListener            
+
+                //tell Master your details
+                int loadAvg = sigar.getLoadAverage()[0];
+                PrintWriter outToMaster = new PrintWriter(s.getOutputStream(), true);
+                outToMaster.println(loadAvg);
+                outToMaster.println(THREADS);
+
+                //set port for reuse to rcv client info
+                int originalPort = s.getLocalPort();
+                s.setReuseAddress(true);
+
+                //New Server socket to wait for client info
+                ServerSocket sRcv = new ServerSocket(originalPort);
+                Socket infoSocket = sRcv.accept();
                 BufferedReader inFromMaster = new BufferedReader(
-                    new InputStreamReader(infoSocket.getInputStream()));
-                
-                PrintWriter outToMaster = new PrintWriter(infoSocket.getOutputStream(), true);
+                    new InputStreamReader(s.getInputStream()));
+
                 String receivedPing = inFromMaster.readLine(); //accept ping
                 outToMaster.println(receivedPing);
 
@@ -229,6 +253,8 @@ public class Equalizers{
                 String portString = inFromMaster.readLine();
                 int receivedPort = Integer.parseInt(portString);
 
+                infoSocket.close();
+
                 Socket socket = new Socket(clientHostName,receivedPort);
                 BufferedReader inFromC = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
@@ -237,7 +263,7 @@ public class Equalizers{
                 returnPort = Integer.parseInt(returnPort_str);
 
                 if(assignmentType==FULL_IMAGE){
-                    // The socket you just opened is with the Client                    
+                    // The socket just opened is with the Client
 
                     processFullData(socket);
 
@@ -251,7 +277,7 @@ public class Equalizers{
                     System.out.println("Processed Part of Image and Returned to Lead Producer");
                 }
                 
-            } catch(IOException e){
+            } catch(IOException|SigarException e){
                 System.err.println(e);
                 System.err.println("Client Gone, probably");
             }

@@ -1,10 +1,11 @@
 import java.net.*;
 import java.io.*;
 
-public class Data {
+public class Data implements comparable<Data>{
 	public InetAddress ia;
 	public int p;
 	public int requestType;
+	public int priority;
 	// 0: Client request to proc images
 	// 1: Producer request to calc histogram
 	// 2: Producer request to rescale image
@@ -17,5 +18,11 @@ public class Data {
 	
 	public String toString(){
 		return "ia: "+ia+" and p:"+p;
+	}
+
+	public int compareTo(Data compareData){
+		int compareQuantity = ((Data) compareData).priority;
+
+		return -(this.priority - compareQuantity);
 	}
 }
