@@ -19,6 +19,10 @@ public class Equalizers{
     private static int masterRequestPortNumber;
     private static BufferedImageArray array;
 
+    private String filename;
+    private String clientHostName;
+    private int returnPort;
+
     protected int splitUp(BufferedImage image,int size){
         int pieceSize = 10000*2^10; // 10 MB
         int pieces = size/pieceSize + 1;
@@ -56,7 +60,6 @@ public class Equalizers{
         int i = 0;
 
         try (
-            OutputStream outToClient = socket.getOutputStream();
             InputStream inFromClient = socket.getInputStream();
             ) {
             byte[] originalByteImage, receivedByteImage;
@@ -66,6 +69,7 @@ public class Equalizers{
                 sendNullBack(); // Tell Client that something was screwed up with the image
                 return;
             }
+            socket.close();
              
             int sizeInBytes = originalByteImage.length;
             System.out.println("NUM BYTES: "+sizeInBytes);
@@ -128,9 +132,14 @@ public class Equalizers{
                 }
 
             }
+
+            Socket returnSocket = new Socket(clientHostName, returnPort);
             
             // workers are done
+            OutputStream outToClient = returnSocket.getOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(outToClient);
+            PrintWriter outToClient = new PrintWriter(returnSocket.getOutputStream(), true);
+            outToClient.println(filename);
 
             //convert to byte array
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -138,7 +147,7 @@ public class Equalizers{
             baos.flush();
             receivedByteImage = baos.toByteArray();
             oos.writeObject(receivedByteImage);
-            socket.close();
+            returnSocket.close();
         }
         catch (IOException e) { e.printStackTrace(); }
         catch (ClassNotFoundException e){ e.printStackTrace(); }
@@ -158,7 +167,7 @@ public class Equalizers{
         while(true){
             try{
                 System.out.println("Waiting for Next Assignment");
-                Socket infoSocket = new Socket(hostName,portNumber); // To EqualizerListener
+                Socket infoSocket = new Socket(masterHostName,masterPortNumber); // To EqualizerListener
                 BufferedReader inFromMaster = new BufferedReader(
                     new InputStreamReader(infoSocket.getInputStream()));
                 
@@ -169,16 +178,16 @@ public class Equalizers{
                 String assignmentType_str = inFromMaster.readLine();
                 int assignmentType = Integer.parseInt(assignmentType_str);
 
-                String hostName = inFromMaster.readLine();
+                clientHostName = inFromMaster.readLine();
                 String portString = inFromMaster.readLine();
                 int receivedPort = Integer.parseInt(portString);
 
-                Socket socket = new Socket(hostName,receivedPort);
+                Socket socket = new Socket(clientHostName,receivedPort);
                 BufferedReader inFromC = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
-                String filename = inFromC.readLine();
+                filename = inFromC.readLine();
                 String returnPort_str = inFromC.readLine();
-                int returnPort = Integer.parseInt(returnPort_str);
+                returnPort = Integer.parseInt(returnPort_str);
 
                 if(assignmentType==FULL_IMAGE){
                     // The socket you just opened is with the Client                    
