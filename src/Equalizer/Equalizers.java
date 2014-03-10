@@ -145,7 +145,7 @@ public class Equalizers{
     }
     
     public static void main(String[] args) {
-        if (args.length != 2){
+        if (args.length != 3){
             System.err.println("Usage java Equalizers <Master host name> <Master port number> <Master's Requesting Port>");
             System.exit(1);
         }        
@@ -174,17 +174,15 @@ public class Equalizers{
                 int receivedPort = Integer.parseInt(portString);
 
                 Socket socket = new Socket(hostName,receivedPort);
+                BufferedReader inFromC = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream()));
+                String filename = inFromC.readLine();
+                String returnPort_str = inFromC.readLine();
+                int returnPort = Integer.parseInt(returnPort_str);
 
                 if(assignmentType==FULL_IMAGE){
                     // The socket you just opened is with the Client                    
 
-                    // This is for telling the client which image to send.
-                    /* Actually, I don't think this is necessary. Let the client just send the images in the order of the received connections.
-                    String imageNumString = inFromMaster.readLine();
-                    int imageNum = Integer.parseInt(imageNumString);
-                    
-                    processFullData(socket,imageNum);
-                    */
                     processFullData(socket);
 
                     System.out.println("Processed Image and Returned to Client");

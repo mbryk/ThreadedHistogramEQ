@@ -73,6 +73,11 @@ public class CloudImageClient {
         //initiate client socket to Master
         System.out.println("Connecting To Master Server");
         Socket s = new Socket(masterHostName, masterPort);
+        
+        //tell master how many images
+        PrintWriter outToM = new PrintWriter(s.getOutputStream(), true);
+        outToM.println(fileNames.length);
+
         int originalPort = s.getLocalPort();
         int returnPort = originalPort+1;
         s.setReuseAddress(true);

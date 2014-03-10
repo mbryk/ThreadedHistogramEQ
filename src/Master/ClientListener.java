@@ -22,12 +22,19 @@ public class ClientListener extends Thread {
             while (true) {
                 System.out.println("Listening for Clients");
                 Socket s = serverSocket.accept();
+                BufferedReader inFromC = new BufferedReader(
+                    new InputStreamReader(s.getInputStream()));
+                String multiples_str = inFromC.readLine();
+                int multiples = Integer.parseInt(multiples_str);
+
                 int p = s.getPort();
                 System.out.println("New Client at Port "+p);
                 InetAddress ia = s.getInetAddress();
                 s.close();
                 
-                putData(new Data(ia,p,0));
+                for (int i = 0; i<multiples; i++){
+                    putData(new Data(ia,p,0));
+                }
             }
         } catch (IOException e) {
             System.err.println("ClientListener Error: "+e);
