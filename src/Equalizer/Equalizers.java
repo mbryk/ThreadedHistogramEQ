@@ -41,9 +41,15 @@ public class Equalizers{
     private static void splitUp(BufferedImage image,int pieces){
         int height = image.getHeight(); int width = image.getWidth();
         int interval = height/pieces;
+
+        System.out.println("P: "+pieces);
+        System.out.println("Height: "+height+"; width: "+width);
+        System.out.println("Interval: "+interval);
+
         BufferedImage subImage;
         int i = 0;
         for(int y = 0; y<height; y+= interval){
+            System.out.println("y: "+y+"; ");
             if(y+interval>height){ interval = height-y; }
             subImage = image.getSubimage(0,y,width,interval);
             array.addImage(subImage,i++);
@@ -118,6 +124,8 @@ public class Equalizers{
                             doPart1 = false;
                             break;
                         }
+
+                        System.out.println("HelpersComing: "+helpersComing);
                         splitUp(image,helpersComing);
 
                         try(ServerSocket getHelpers = new ServerSocket(helperPort)){

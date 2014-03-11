@@ -10,6 +10,8 @@ public class CubbyHole {
     private PriorityBlockingQueue<Data> processorQueue = new PriorityBlockingQueue<>(Qsize);
     private static int numProds = 0;
 
+    private int numProcessors;
+
     public CubbyHole() {}
     
     public void addProducer() {
@@ -23,7 +25,8 @@ public class CubbyHole {
     }
 
     public int getProcessorsCount(){
-        return Qsize - processorQueue.remainingCapacity();
+        //return Qsize - processorQueue.remainingCapacity();
+        return numProcessors;
     }
 
     //for LB stats:
@@ -54,12 +57,14 @@ public class CubbyHole {
 
     public void putProcessor(Data value){
         processorQueue.put(value);
+        numProcessors++;
     }
 
     public Data getProcessor(){
         Data ret = null;
         try{
             ret = processorQueue.take();
+            numProcessors--;
         } catch (InterruptedException e){
             System.err.println("Processor Take error: " + e);
         }

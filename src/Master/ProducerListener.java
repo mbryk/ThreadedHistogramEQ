@@ -52,8 +52,10 @@ public class ProducerListener extends Thread {
 	            	continue;
 	            }
 
+                System.out.println("numRequested: "+numRequested+"; requestType: "+requestType);
 	            int numGranted = checkAvailability(numRequested);
 	            outToP.println(numGranted);
+                System.out.println("numGranted: "+numGranted);
 
 	            s.close();
 	            for (int i = 0; i<numGranted; i++){
