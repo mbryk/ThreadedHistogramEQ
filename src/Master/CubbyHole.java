@@ -42,19 +42,6 @@ public class CubbyHole {
 
         return ret;
     }
- 
-    public Data get2() {
-        Data ret = null;
-        try{
-            if (!isDone()){
-                ret = clientQueue.poll();
-            }
-        } catch (InterruptedException e){
-            System.err.println("Take error: " + e);
-        }
-
-        return ret;
-    }
 
     public void put(Data value) {
         try{

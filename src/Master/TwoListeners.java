@@ -19,5 +19,6 @@ public class TwoListeners {
     	new ClientListener(c, clientPort).start();
     	new EqualizerListener(c, processingPort).start();
         new ProducerListener(c,producerPort).start();
+        new ClientProcessorAssigner(c).start();
     }
 }
