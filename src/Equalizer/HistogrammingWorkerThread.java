@@ -14,7 +14,6 @@ public class HistogrammingWorkerThread implements Runnable {
         this.type = type;
     }
  
-    @Override
     public void run() {
     	BufferedImage original = array.getImage(index);
         if(type==1){ // Making the Histogram

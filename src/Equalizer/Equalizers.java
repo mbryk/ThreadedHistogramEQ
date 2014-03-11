@@ -121,7 +121,7 @@ public class Equalizers{
                         int helpersComing = Integer.parseInt(helpersComing_str);
                         if(helpersComing == 0){
                             onYourOwn = true;
-                            doPart1 = false;
+                            //doPart1 = false;
                             break;
                         }
 
