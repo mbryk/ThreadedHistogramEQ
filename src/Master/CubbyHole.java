@@ -22,6 +22,10 @@ public class CubbyHole {
         return numProds==0;
     }
 
+    public int getProcessorsCount(){
+        return Qsize - processorQueue.remainingCapacity();
+    }
+
     //for LB stats:
     public int getQueueRatio(){
         return clientQueue.remainingCapacity();
