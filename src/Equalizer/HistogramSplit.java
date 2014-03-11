@@ -23,7 +23,7 @@ public class HistogramSplit {
     public ArrayList<int[]> getHist(){
         return histogram;
     }
-    public setLUT(ArrayList<int[]> myLUT){
+    public void setLUT(ArrayList<int[]> myLUT){
         histLUT = myLUT;
     }
  

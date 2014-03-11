@@ -117,7 +117,7 @@ public class Equalizers{
 
                         try(ServerSocket getHelpers = new ServerSocket(helperPort)){
                             waiting = 0;
-                            while(int h=0;h<helpersComing;h++){
+                            for(int h=0;h<helpersComing;h++){
                                 Socket helper = getHelpers.accept();
                                 new HelperCommsThread(helper,type,array,histogram,h,waiting).start();
                             }
