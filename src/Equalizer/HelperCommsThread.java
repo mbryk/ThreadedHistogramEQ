@@ -7,7 +7,7 @@ public class HelperCommsThread implements Runnable {
     private HistogramSplit histogram;
     private int index;
 
-    public HelperCommsThread(Socket socket,int type,BufferedImageArray array, HistogramSplit histogram, int index) {
+    public HelperCommsThread(Socket socket,int type,BufferedImageArray array, HistogramSplit histogram, int index, int waiting) {
         this.socket = socket;
         this.type = type;
         this.array = array;
