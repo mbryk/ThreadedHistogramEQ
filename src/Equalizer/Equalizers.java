@@ -68,12 +68,14 @@ public class Equalizers{
         try (
             InputStream inFromClient = socket.getInputStream();
             ) {
-            BufferedReader readFromClient = new BufferedReader(new InputStreamReader(inFromClient));
-            filename = readFromClient.readLine();
-            String returnPort_str = readFromClient.readLine();
-            returnPort = Integer.parseInt(returnPort_str);
+            //BufferedReader readFromClient = new BufferedReader(new InputStreamReader(inFromClient));
+            //filename = readFromClient.readLine();
+            //String returnPort_str = readFromClient.readLine();
+            //returnPort = Integer.parseInt(returnPort_str);
 
             ObjectInputStream ois = new ObjectInputStream(inFromClient);
+            filename = (String) ois.readObject();
+            returnPort = ois.readInt();
             byte[] originalByteImage = (byte[])ois.readObject();
 
             socket.close();

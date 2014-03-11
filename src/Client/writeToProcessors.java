@@ -51,8 +51,10 @@ public class writeToProcessors extends Thread{
 	            byte[] originalByteImage = baos.toByteArray();
 
 	            //give Processor info to return image
-	            outToP.println(fileName);
-	            outToP.println(returnPort);
+	            //outToP.println(fileName);
+	            //outToP.println(returnPort);
+	            oos.writeObject(fileName);
+	            oos.writeInt(returnPort);
 
 	            //write image
 	            oos.writeObject(originalByteImage);
