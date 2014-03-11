@@ -78,7 +78,7 @@ do
 
 done
 
-total=0
+totalTime=0
 for (( i = 0; i<${numClients}; i++))
 do
 
@@ -86,7 +86,19 @@ do
 
     #new=$( nc -l 1200 )
     new=$( cat TEST_${i} )
-    total=$( bc <<< "${total} + ${new}" )
+    totalTime=$( bc <<< "${totalTime} + ${new}" )
 done
 
-echo $total
+echo $totalTime
+
+
+for file in ${DIR}/Client/imDir/*.jpg
+do
+    FILESIZE=$(stat -c%s "$FILENAME")
+done
+
+totalProcessedBytes=$(( ${FILESIZE} * ${numClients} ))
+echo ${totalProcessedBytes}
+
+totalThroughout=$( bc <<< "${totalProcessedBytes}/${totalTime}" )
+echo $totalThroughout
