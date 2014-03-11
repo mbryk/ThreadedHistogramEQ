@@ -4,8 +4,8 @@ import java.io.*;
 public class Data implements comparable<Data>{
 	public InetAddress ia;
 	public int p;
-	public int requestType;
-	public float priority;
+	public int requestType; // Relevant for clientQueue objects
+	public float priority; // Relevant for processorQueue objects
 	// 0: Client request to proc images
 	// 1: Producer request to calc histogram
 	// 2: Producer request to rescale image

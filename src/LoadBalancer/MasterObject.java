@@ -20,7 +20,6 @@ public class MasterObject{
 
 	@Override 
 	public boolean equals(Object o){
-		//return ia==o.ia
 		if(o == null) return false;
 		if(this.getClass() != o.getClass()) return false;
 		return (ia==((MasterObject) o).ia && p==((MasterObject) o).p);

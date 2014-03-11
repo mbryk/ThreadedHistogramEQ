@@ -10,24 +10,20 @@ public class ProducerListener extends Thread {
 	private CubbyHole cubbyhole;
 
     public ProducerListener(CubbyHole c, int port) {
-        super("TwoListeners");
         this.cubbyhole = c;
         this.portNumber = port;
         cubbyhole.addProducer();
     }
     
-    protected int checkAvailability(int numRequested){ 
-    	//int numWaiting = cubbyhole.Qsize - cubbyhole.getQueueRatio();
+    private int checkAvailability(int numRequested){ 
     	int numProcessors = cubbyhole.getProcessorsCount();
         if (numRequested > numProcessors) numGranted = numProcessors;
         else numGranted = numRequested;
-        //int numGranted = numRequested - numWaiting;
-    	//if (numGranted < 0) numGranted = 0;
 
     	return numGranted;
     }
 
-	protected void putData(Data data) {
+	private void putData(Data data) {
         cubbyhole.put(data);
     }
 
@@ -42,17 +38,17 @@ public class ProducerListener extends Thread {
 	            BufferedReader inFromP = new BufferedReader(
 	                new InputStreamReader(s.getInputStream()));
 	            PrintWriter outToP = new PrintWriter(sLB.getOutputStream(), true);
-	            String numRequested_str = inFromP.readline();
-	            String requestType_str = inFromP.readline();
+	            String numRequested_str = inFromP.readLine();
+	            String requestType_str = inFromP.readLine();
 	            if (numRequested_str == null || requestType_str == null){
 	            	System.out.println("Failed Request");
-	            	return;
+	            	continue;
 	            }
 	            int numRequested = Integer.parseInt(numRequested_str);
 	            int requestType = Integer.parseInt(requestType_str);
 	            if (requestType != HELPER_SCALING && requestType != HELPER_HISTOGRAM){
 	            	System.out.println("Failed Request: Incorrect requestType");
-	            	return;
+	            	continue;
 	            }
 
 	            int numGranted = checkAvailability(numRequested);
@@ -60,7 +56,7 @@ public class ProducerListener extends Thread {
 
 	            s.close();
 	            for (int i = 0; i<numGranted; i++){
-	            	putData(new Data(ia, p, requestType));
+	            	putData(new Data(ia, p, requestType, -1));
 	            }
     		}
     	} catch (IOException e){

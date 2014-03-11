@@ -30,11 +30,8 @@ public class CubbyHole {
     public int getQueueRatio(){
         return clientQueue.remainingCapacity();
     }
-    public int getProducerCount(){
-        return numProds;
-    }
 
-    public Data get() {
+    public Data get() { // Get Client From Queue
         Data ret = null;
         try{
             if (!isDone()){
@@ -47,7 +44,7 @@ public class CubbyHole {
         return ret;
     }
 
-    public void put(Data value) {
+    public void put(Data value) { // Put Client into Queue
         try{
             clientQueue.put(value);
         } catch (InterruptedException e){

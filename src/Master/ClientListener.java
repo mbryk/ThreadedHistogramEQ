@@ -6,18 +6,16 @@ public class ClientListener extends Thread {
 	private CubbyHole cubbyhole;
 
     public ClientListener(CubbyHole c, int port) {
-        super("TwoListeners");
         this.cubbyhole = c;
         this.portNumber = port;
         cubbyhole.addProducer();
     }
 
-    protected void putData(Data data) {
+    private void putData(Data data) {
         cubbyhole.put(data);
     }
     
     public void run() {
-       
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
             while (true) {
                 System.out.println("Listening for Clients");

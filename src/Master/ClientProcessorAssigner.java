@@ -25,11 +25,11 @@ public class ClientProcessorAssigner extends Thread {
     }
 
 	public void run(){
-		boolean havedata = false;
+		boolean haveData = false;
 		try{
 			while(true){
 				Data curProcessor = cubbyhole.getProcessor();
-				if (!havedata) Data data = cubbyhole.get();
+				if (!haveData) Data data = cubbyhole.get();
 
 				Socket s = new Socket(curProcessor.ia, curProcessor.p);
 				if(ping(s)){
@@ -43,7 +43,7 @@ public class ClientProcessorAssigner extends Thread {
 		    		s.close();
 		            System.out.println("Sent New Assignment");
 				} else{
-					havedata = true;
+					haveData = true;
 					System.out.println("He was impatient. Let's look for another processing server.");
 				}
 			}

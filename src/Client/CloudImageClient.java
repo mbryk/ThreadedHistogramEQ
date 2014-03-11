@@ -13,7 +13,6 @@ import javax.imageio.ImageIO;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 
-
 public class CloudImageClient {
 
     public static String[] parseDirectory(String dir_string){
@@ -81,10 +80,12 @@ public class CloudImageClient {
         int originalPort = s.getLocalPort();
         int returnPort = originalPort+1;
         s.setReuseAddress(true);
+
+        // Listening for Processors to collect images
         ServerSocket sSend = new ServerSocket(originalPort);
         System.out.println("Port: "+originalPort);
 
-        //seaprate thread to send files
+        //separate thread to send files
         new writeToProcessors(sSend, fileNames, returnPort, in_dir).start();
 
         //receive in this thread

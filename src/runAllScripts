@@ -73,7 +73,6 @@ do
 	cd "${DIR}/Client/out"
     echo "HERE"
 	command="java CloudImageClient ${LB_HN} ${Client2LB} ../imDir NewStuff_${i}"
-	#gnome-terminal -x bash -c "export utime=$( TIMEFORMAT='%E';time (${command}) 2>&1 1>/dev/null );echo ${utime} > TEST_${i}; nc localhost 1200 < TEST_${i}"
     gnome-terminal -x bash -c " echo $( TIMEFORMAT='%E';time (${command}) 2>&1 1>/dev/null ) > TEST_${i}"
 
 done

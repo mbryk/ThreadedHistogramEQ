@@ -2,13 +2,13 @@ import java.net.*;
 import java.io.*;
 
 public class writeToProcessors extends Thread{
-	private ServerSocket s2;
+	private ServerSocket s;
 	private String[] filenames;
 	private int returnPort;
 	private String in_dir;
 
-	public writeToProcessors(ServerSocket s2, String[] filenames, int returnPort, String in_dir){
-		this.s2 = s2;
+	public writeToProcessors(ServerSocket s, String[] filenames, int returnPort, String in_dir){
+		this.s = s;
 		this.filenames = filenames;
 		this.returnPort = returnPort;
 		this.in_dir = in_dir;
@@ -19,12 +19,12 @@ public class writeToProcessors extends Thread{
 		try{
 			//loop through images in directory
 	        for(String fileName : fileNames) {
-	            Socket echoSocket = s2.accept();
+	            Socket echoSocket = s.accept();
 	            System.out.println("Connected to Processing Server");
 
 	            //get output stream and sent byte array image
-	            PrintWriter outToP = new PrintWriter(s2.getOutputStream(), true);
 	            OutputStream outToServer = echoSocket.getOutputStream();
+	            PrintWriter outToP = new PrintWriter(outToServer, true);
 	            ObjectOutputStream oos = new ObjectOutputStream(outToServer);
 
 	            //read in file

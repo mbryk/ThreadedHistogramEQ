@@ -10,7 +10,6 @@ public class LBChatter extends Thread {
     private static Sigar sigar;
 
     public LBChatter(CubbyHole cubbyhole, String host, int port, int clientPort) {
-        super("TwoListeners");
         c = cubbyhole;
         hostName = host;
         portNumber = port;
@@ -37,13 +36,11 @@ public class LBChatter extends Thread {
 
                 System.out.println("LB Pinged Me");
                 outToLB.println(c.getQueueRatio());
-                // cf. ProducerListener. This doesn't actually tell us how many equalizers we have. Just how many clientlisteners we have (1) :(
-                outToLB.println(c.getProducerCount()); 
+                outToLB.println(c.getProcessorsCount()); 
                 try{outToLB.println(sigar.getLoadAverage()[0]);}
                 catch (SigarException e){
                     System.err.println("Sigar error:"+e);
                 }
-
             }
         } catch (IOException e){
             System.err.println("LB Chatter error: "+e);
