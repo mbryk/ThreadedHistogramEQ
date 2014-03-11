@@ -33,7 +33,7 @@ public class ClientListener extends Thread {
                 s.close();
                 
                 for (int i = 0; i<multiples; i++){
-                    putData(new Data(ia,p,0));
+                    putData(new Data(ia,p,0,-1));
                 }
             }
         } catch (IOException e) {

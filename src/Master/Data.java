@@ -5,7 +5,7 @@ public class Data implements comparable<Data>{
 	public InetAddress ia;
 	public int p;
 	public int requestType;
-	public int priority;
+	public float priority;
 	// 0: Client request to proc images
 	// 1: Producer request to calc histogram
 	// 2: Producer request to rescale image

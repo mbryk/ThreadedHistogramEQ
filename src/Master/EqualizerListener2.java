@@ -43,15 +43,17 @@ public class EqualizerListener2 extends Thread {
                 String procLoad_str = inFromEqualizer.readLine();
                 String procThreads_str = inFromEqualizer.readLine();
 
-                int procLoad = Integer.parseInt(procLoad_str);
-                int procThreads_str = Integer.parseInt(procThreads_str);
+                float procLoad = Float.parseFloat(procLoad_str);
+                int procThreads = Integer.parseInt(procThreads_str);
+
+                float priority = 1/procLoad + (float)procThreads;
 
                 int p = s.getPort();
                 InetAddress ia = s.getInetAddress();
 
                 s.close();
 
-                cubbyhole.putProcessor(new Data(ia, p, -1));
+                cubbyhole.putProcessor(new Data(ia, p, -1, priority));
             }
 
         } catch (IOException e) {
