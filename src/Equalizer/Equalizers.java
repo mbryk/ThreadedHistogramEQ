@@ -116,6 +116,7 @@ public class Equalizers{
                     System.out.println("Finished all threads");
                 
                 } else { // You need help.
+                    int waiting;
                     for(int type=1;type<3;type++){
                         Socket reqHelpers = socket(masterHostName, masterRequestPortNumber);
                         BufferedReader inFromMReq = new BufferedReader(
@@ -132,10 +133,12 @@ public class Equalizers{
                         splitUp(image,helpersComing);
 
                         try(ServerSocket getHelpers = new ServerSocket(helperPort)){
+                            waiting = 0;
                             while(int h=0;h<helpersComing;h++){
                                 Socket helper = getHelpers.accept();
-                                new HelperCommsThread(helper,type,array,histogram,h).start();
+                                new HelperCommsThread(helper,type,array,histogram,h,waiting).start();
                             }
+                            while(waiting<helpersComing);
                             //Make sure all those guys come back (.join())
                             if(type==1){
                                 histogram.calcHistogramLUT();

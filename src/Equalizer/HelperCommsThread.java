@@ -20,6 +20,7 @@ public class HelperCommsThread implements Runnable {
         socket.send(image);
         if(type==1) receiveHistogram();
         else receiveImage();
+        waiting++;
     }
 
     private void receiveHistogram(){
