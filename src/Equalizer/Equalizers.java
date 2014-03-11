@@ -92,30 +92,9 @@ public class Equalizers{
             else{
                 array = new BufferedImageArray();
                 HistogramSplit histogram = new HistogramSplit();
-
-                if(imParts==1){
-                    ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-                    splitUp(image,workerCount); // Add pieces of image to the array and return array size
-
-                    for(int i=0;i<workerCount;i++){
-                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i,HELPER_HISTOGRAM);    
-                        executor.execute(worker);
-                    }
-                    executor.shutdown();
-                    while (!executor.isTerminated()) {}
-
-                    histogram.calcHistogramLUT();
-                
-                    for(i=0;i<workerCount;i++){
-                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i,HELPER_SCALING);    
-                        executor.execute(worker);
-                    } 
-                    executor.shutdown();
-                    while (!executor.isTerminated()) {}
-
-                    System.out.println("Finished all threads");
-                
-                } else { // You need help.
+                boolean onYourOwn = (imParts==1);
+                boolean doPart1 = true;
+                if(!onYourOwn){
                     int waiting;
                     for(int type=1;type<3;type++){
                         Socket reqHelpers = socket(masterHostName, masterRequestPortNumber);
@@ -129,7 +108,11 @@ public class Equalizers{
 
                         String helpersComing_str = inFromMReq.readLine();
                         int helpersComing = Integer.parseInt(helpersComing_str);
-
+                        if(!helpersComing){
+                            onYourOwn = true;
+                            doPart1 = false;
+                            break;
+                        }
                         splitUp(image,helpersComing);
 
                         try(ServerSocket getHelpers = new ServerSocket(helperPort)){
@@ -146,6 +129,30 @@ public class Equalizers{
                             } 
                         }
                     }
+                }
+                if(onYourOwn){
+                    ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+                    splitUp(image,workerCount); // Add pieces of image to the array and return array size
+
+                    if(doPart1){
+                        for(int i=0;i<workerCount;i++){
+                            Runnable worker = new HistogrammingWorkerThread(array,histogram,i,HELPER_HISTOGRAM);    
+                            executor.execute(worker);
+                        }
+                        executor.shutdown();
+                        while (!executor.isTerminated()) {}
+
+                        histogram.calcHistogramLUT();
+                    }
+                
+                    for(i=0;i<workerCount;i++){
+                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i,HELPER_SCALING);    
+                        executor.execute(worker);
+                    } 
+                    executor.shutdown();
+                    while (!executor.isTerminated()) {}
+
+                    System.out.println("Finished all threads");
                 }
                 BufferedImage processedImage = recombineImage(image);
             }
