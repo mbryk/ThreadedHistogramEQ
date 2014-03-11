@@ -15,7 +15,6 @@ public class HelperCommsThread implements Runnable {
         this.index = index;
     }
  
-    @Override
     public void run() {
         BufferedImage image = array.getImage(index);
         socket.send(image);
@@ -29,7 +28,7 @@ public class HelperCommsThread implements Runnable {
     }
 
     private void receiveImage(){
-        socket.send(histogram.getLUT());
+        socket.sendStuff(histogram.getLUT());
         BufferedImage equalized = socket.readImage();
         array.addImage(equalized,index);
     }

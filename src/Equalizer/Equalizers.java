@@ -17,37 +17,34 @@ public class Equalizers{
     public static final int HELPER_HISTOGRAM = 1;
     public static final int HELPER_SCALING = 2;
 
-    protected static final int THREAD_POOL_SIZE = 5;
+    private static int THREAD_POOL_SIZE;
     private static String masterHostName;
     private static int masterPortNumber;
     private static int masterRequestPortNumber;
     private static BufferedImageArray array;
 
     private String filename;
-    private String clientHostName;
+    private String hostName;
     private int returnPort;
 
     private static Sigar sigar;
 
-    protected int judgeImage(int size, int workers){
+    private int judgeImage(int size, int workers){
         int pieceSize = 10000*2^10; // 10 MB
         int pieces = size/pieceSize + 1;
         if(pieces==1) return 0;
-        else if(pieces<workerCount*2) return 1;
-        else return 2;
+        else if(pieces<workers) return 1;
+        else return pieces;
     }
     
-    protected void splitUp(BufferedImage image,int pieces){
-        if(pieces>1){
-            int height = image.getHeight(); int width = image.getWidth();
-            int interval = height/pieces;
-            int ylow = 0; int y=0; int i=0;
-            for(int y = 0; y<height; y+= interval){
-                if(y+interval>height){ interval = height-y; }
-                subImage = image.getSubImage(0,y,width,interval);
-                array.addImage(subImage);
-            }
-        } else array.addImage(image);
+    private void splitUp(BufferedImage image,int pieces){
+        int height = image.getHeight(); int width = image.getWidth();
+        int interval = height/pieces;
+        for(int y = 0; y<height; y+= interval){
+            if(y+interval>height){ interval = height-y; }
+            subImage = image.getSubImage(0,y,width,interval);
+            array.addImage(subImage);
+        }
     }
 
     protected BufferedImage recombineImage(BufferedImage oldImage){
@@ -65,18 +62,17 @@ public class Equalizers{
     }
 
     public static void processFullData(Socket socket) {
-        array = new BufferedImageArray();
-
         try (
             InputStream inFromClient = socket.getInputStream();
             ) {
-            byte[] originalByteImage, receivedByteImage;
+            BufferedReader readFromClient = new BufferedReader(new InputStreamReader(inFromClient));
+            filename = readFromClient.readLine();
+            String returnPort_str = readFromClient.readLine();
+            returnPort = Integer.parseInt(returnPort_str);
+
+            byte[] originalByteImage;
             ObjectInputStream ois = new ObjectInputStream(inFromClient);
 
-            if((originalByteImage = (byte[])ois.readObject())==null){
-                sendNullBack(); // Tell Client that something was screwed up with the image
-                return;
-            }
             socket.close();
              
             int sizeInBytes = originalByteImage.length;
@@ -86,24 +82,23 @@ public class Equalizers{
             ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
             BufferedImage image = ImageIO.read(bais);
 
-            int workerCount = THREAD_POOL_SIZE*2;
-            int judge = judgeImage(sizeInBytes,workerCount); // Return 0 if you can do it in one thread. 1 if you can do it with a pool. 2 if you need help.
+            int workerCount = THREAD_POOL_SIZE;
+            int imParts = judgeImage(sizeInBytes,workerCount); // Return 0 if you can do it in one thread. 1 if you can do it with a pool. 2 if you need help.
 
-
-            if(judge == 0){
-                BufferedImage original = array.getImage(index);
-                Histogram histogram = new Histogram(original);
-                array.addImage(histogram.equalized,index);
+            if(imParts == 0){
+                Histogram histogram = new Histogram(image);
+                BufferedImage processedImage = histogram.equalized;
             }            
             else{
+                array = new BufferedImageArray();
                 HistogramSplit histogram = new HistogramSplit();
 
-                if(judge==1){
+                if(imParts==1){
                     ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
                     splitUp(image,workerCount); // Add pieces of image to the array and return array size
 
-                    for(i=0;i<workerCount;i++){
-                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i,1);    
+                    for(int i=0;i<workerCount;i++){
+                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i,HELPER_HISTOGRAM);    
                         executor.execute(worker);
                     }
                     executor.shutdown();
@@ -112,7 +107,7 @@ public class Equalizers{
                     histogram.calcHistogramLUT();
                 
                     for(i=0;i<workerCount;i++){
-                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i,2);    
+                        Runnable worker = new HistogrammingWorkerThread(array,histogram,i,HELPER_SCALING);    
                         executor.execute(worker);
                     } 
                     executor.shutdown();
@@ -127,18 +122,21 @@ public class Equalizers{
                             new InputStreamReader(reqHelpers.getInputStream()));
                         PrintWriter outToMReq = new PrintWriter(reqHelpers.getOutputStream(), true);
                         outToMReq.println(imParts);
-                        outToMReq.println(requestType);
+                        outToMReq.println(type);
+                        int helperPort = reqHelpers.getLocalPort();
+                        reqHelpers.setReuseAddress(true);
 
-                        String helpersComing_str = inFromMReq.readline();
+                        String helpersComing_str = inFromMReq.readLine();
                         int helpersComing = Integer.parseInt(helpersComing_str);
 
                         splitUp(image,helpersComing);
 
-                        try(ServerSocket getHelpers = helpersComing){
+                        try(ServerSocket getHelpers = new ServerSocket(helperPort)){
                             while(int h=0;h<helpersComing;h++){
                                 Socket helper = getHelpers.accept();
-                                new HelperCommsThread(helper,type,array.getImage(h),histogram).start();
+                                new HelperCommsThread(helper,type,array,histogram,h).start();
                             }
+                            //Make sure all those guys come back (.join())
                             if(type==1){
                                 histogram.calcHistogramLUT();
                                 array.clearArray();
@@ -149,19 +147,19 @@ public class Equalizers{
                 BufferedImage processedImage = recombineImage(image);
             }
 
-            Socket returnSocket = new Socket(clientHostName, returnPort);
+            Socket returnSocket = new Socket(hostName, returnPort);
             
             // workers are done
             OutputStream outToClient = returnSocket.getOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(outToClient);
-            PrintWriter outToClient = new PrintWriter(returnSocket.getOutputStream(), true);
-            outToClient.println(filename);
+            PrintWriter printToClient = new PrintWriter(outToClient, true);
+            printToClient.println(filename);
 
             //convert to byte array
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(processedImage,"jpg", baos);
             baos.flush();
-            receivedByteImage = baos.toByteArray();
+            byte[] receivedByteImage = baos.toByteArray();
             oos.writeObject(receivedByteImage);
             returnSocket.close();
         }
@@ -171,23 +169,27 @@ public class Equalizers{
     
     public static void processPartData(Socket socket, int assignmentType){
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-        int workerCount = THREAD_POOL_SIZE*2;
+        int workerCount = THREAD_POOL_SIZE;
 
-        InputStream inFromClient = socket.getInputStream();
+        InputStream inFromLeader = socket.getInputStream();
         byte[] originalByteImage;
         ObjectInputStream ois = new ObjectInputStream(inFromClient);
 
         originalByteImage = (byte[])ois.readObject();
         ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
         BufferedImage image = ImageIO.read(bais);
+        
+        array = new BufferedImageArray();
 
         splitUp(image,workerCount);
 
         HistogramSplit histogram = new HistogramSplit();
-        ArrayList<int[]> histLUT;
+        
+        ArrayList<int[]> histVar;
+
         if(assignmentType==2){
-            histLUT = socket.receiveLUT();
-            histogram.setLUT(histLUT);
+            histVar = socket.receiveStuff();
+            histogram.setLUT(histVar);
         }
         for(i=0;i<workerCount;i++){
             Runnable worker = new HistogrammingWorkerThread(array,histogram,i,assignmentType);    
@@ -197,9 +199,8 @@ public class Equalizers{
         while (!executor.isTerminated()) {}
 
         if(assignmentType==1){
-            histogram.calcHistogramLUT();
-            histLUT = histogram.getLUT();
-            socket.send(histLUT);
+            histVar = histogram.getHist();
+            socket.sendStuff(histVar);
         } else {
             BufferedImage processedImage = recombineImage(image);
             socket.send(processedImage);
@@ -211,12 +212,11 @@ public class Equalizers{
             System.err.println("Usage java Equalizers <Master host name> <Master port number> <Master's Requesting Port>");
             System.exit(1);
         }
-        public static final int THREADS =  Runtime.getRuntime().availableProcessors();   
+        THREAD_POOL_SIZE =  Runtime.getRuntime().availableProcessors();   
 
         masterHostName = args[0];
         masterPortNumber = Integer.parseInt(args[1]);
-        masterRequestPortNumber = Integer.parseInt(args[2]);
-        int i;
+        masterRequestPortNumber = Integer.parseInt(args[2]); // If you need backup
 
         sigar = new Sigar();
 
@@ -231,7 +231,7 @@ public class Equalizers{
                 int loadAvg = sigar.getLoadAverage()[0];
                 PrintWriter outToMaster = new PrintWriter(s.getOutputStream(), true);
                 outToMaster.println(loadAvg);
-                outToMaster.println(THREADS);
+                outToMaster.println(THREAD_POOL_SIZE);
 
                 //set port for reuse to rcv client info
                 int originalPort = s.getLocalPort();
@@ -241,7 +241,8 @@ public class Equalizers{
                 ServerSocket sRcv = new ServerSocket(originalPort);
                 Socket infoSocket = sRcv.accept();
                 BufferedReader inFromMaster = new BufferedReader(
-                    new InputStreamReader(s.getInputStream()));
+                    new InputStreamReader(infoSocket.getInputStream()));
+                outToMaster = new PrintWriter(infoSocket.getOutputStream(),true);
 
                 String receivedPing = inFromMaster.readLine(); //accept ping
                 outToMaster.println(receivedPing);
@@ -249,31 +250,23 @@ public class Equalizers{
                 String assignmentType_str = inFromMaster.readLine();
                 int assignmentType = Integer.parseInt(assignmentType_str);
 
-                clientHostName = inFromMaster.readLine();
+                hostName = inFromMaster.readLine();
                 String portString = inFromMaster.readLine();
                 int receivedPort = Integer.parseInt(portString);
 
                 infoSocket.close();
 
-                Socket socket = new Socket(clientHostName,receivedPort);
-                BufferedReader inFromC = new BufferedReader(
-                    new InputStreamReader(socket.getInputStream()));
-                filename = inFromC.readLine();
-                String returnPort_str = inFromC.readLine();
-                returnPort = Integer.parseInt(returnPort_str);
+                Socket socket = new Socket(hostName,receivedPort);
 
                 if(assignmentType==FULL_IMAGE){
                     // The socket just opened is with the Client
-
                     processFullData(socket);
-
                     System.out.println("Processed Image and Returned to Client");
 
                 } else{ // Your Job is to help out
                     // The socket you just opened is with the lead producer
                     // Note: This guy does NOT need to know the index of the image part he is getting.
                     processPartData(socket,assignmentType);
-
                     System.out.println("Processed Part of Image and Returned to Lead Producer");
                 }
                 

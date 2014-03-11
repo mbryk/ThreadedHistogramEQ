@@ -20,8 +20,8 @@ public class HistogramSplit {
         histogram.add(bempty);
     }
 
-    public ArrayList<int[]> getLUT(){
-        return histLUT;
+    public ArrayList<int[]> getHist(){
+        return histogram;
     }
     public setLUT(ArrayList<int[]> myLUT){
         histLUT = myLUT;
