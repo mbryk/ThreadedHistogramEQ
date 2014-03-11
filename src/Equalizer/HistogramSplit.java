@@ -76,7 +76,7 @@ public class HistogramSplit {
         }
     }
 
-    public void calcHistogramLUT(){
+    public void calcHistogramLUT(int dimProduct){
         // Create the lookup table
         histLUT = new ArrayList<int[]>();
  
@@ -94,7 +94,7 @@ public class HistogramSplit {
         long sumb = 0;
  
         // Calculate the scale factor
-        float scale_factor = (float) (255.0 / (input.getWidth() * input.getHeight()));
+        float scale_factor = (float) (255.0 / dimProduct);
  
         for(int i=0; i<rhistogram.length; i++) {
             sumr += histogram.get(0)[i];

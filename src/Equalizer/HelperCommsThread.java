@@ -27,7 +27,7 @@ public class HelperCommsThread extends Thread {
     public void run() {
         BufferedImage image = array.getImage(index);
         
-        //socket.send(image);
+      try{
         OutputStream outToHelper = socket.getOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(outToHelper);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -35,6 +35,10 @@ public class HelperCommsThread extends Thread {
         baos.flush();
         byte[] receivedByteImage = baos.toByteArray();
         oos.writeObject(receivedByteImage);
+      } catch (IOException e){
+        System.out.println("Error Sending Image: "+e);
+        System.exit(-1);
+      }
 
 
         if(type==1) receiveHistogram();
@@ -43,14 +47,13 @@ public class HelperCommsThread extends Thread {
     }
 
     private void receiveHistogram(){
-        //ArrayList<int[]> myHist = socket.readStuff();
-        BufferedReader inFromHelper = new BufferedReader(
-            new InputStreamReader(socket.getInputStream()));
-
         ArrayList<int[]> myHist = new ArrayList<int[]>();
         myHist.add(new int[256]);
         myHist.add(new int[256]);
         myHist.add(new int[256]);
+      try{
+        BufferedReader inFromHelper = new BufferedReader(
+            new InputStreamReader(socket.getInputStream()));
         
         int i;
         for(int[] intArray : myHist){
@@ -59,12 +62,17 @@ public class HelperCommsThread extends Thread {
                 intArray[i] = Integer.parseInt(curVal_str);
             }
         }
+      } catch(IOException e){
+        System.out.println("Error Reading Histogram: "+e);
+        System.exit(-1);
+      }
 
         histogram.addHist(myHist);
     }
 
     private void receiveImage(){
         //socket.sendStuff(histogram.getLUT());
+      try{
         PrintWriter outToHelper = new PrintWriter(socket.getOutputStream(), true);
         ArrayList<int[]> myLUT = histogram.getLUT();
         int j;
@@ -73,14 +81,18 @@ public class HelperCommsThread extends Thread {
                 outToHelper.println(intArray[j]);
             }
         }
-        
-        //BufferedImage equalized = socket.readImage();
         InputStream inFromHelper = socket.getInputStream();
         ObjectInputStream ois = new ObjectInputStream(inFromHelper);
         byte[] equalizedByteImage = (byte[])ois.readObject();
         ByteArrayInputStream bais = new ByteArrayInputStream(equalizedByteImage);
         BufferedImage equalized = ImageIO.read(bais);
-
         array.addImage(equalized,index);
+      } catch (IOException e){
+        System.out.println("Error Sending Image: "+e);
+        System.exit(-1);
+      } catch (ClassNotFoundException e){
+        System.out.println("Error Sending Image: "+e);
+        System.exit(-1);
+      }      
     }
 }

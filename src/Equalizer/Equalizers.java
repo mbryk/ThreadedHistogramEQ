@@ -127,7 +127,7 @@ public class Equalizers{
                             while(waiting<helpersComing);
                             //Make sure all those guys come back (.join())
                             if(type==1){
-                                histogram.calcHistogramLUT();
+                                histogram.calcHistogramLUT(image.getHeight()*image.getWidth());
                                 array.clearArray();
                             } 
                         }
@@ -145,7 +145,7 @@ public class Equalizers{
                         executor.shutdown();
                         while (!executor.isTerminated()) {}
 
-                        histogram.calcHistogramLUT();
+                        histogram.calcHistogramLUT(image.getHeight()*image.getWidth());
                     }
                 
                     for(int i=0;i<workerCount;i++){
@@ -183,7 +183,7 @@ public class Equalizers{
     public static void processPartData(Socket socket, int assignmentType){
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
         int workerCount = THREAD_POOL_SIZE;
-
+      try{
         InputStream inFromLeader = socket.getInputStream();
         byte[] originalByteImage;
         ObjectInputStream ois = new ObjectInputStream(inFromLeader);
@@ -248,6 +248,13 @@ public class Equalizers{
             byte[] receivedByteImage = baos.toByteArray();
             oos.writeObject(receivedByteImage);
         }
+      } catch(IOException e){
+        System.out.println("Error Helping Out: " + e);
+        System.exit(-1);
+      } catch(ClassNotFoundException e){
+        System.out.println("Error Helping Out: " + e);
+        System.exit(-1);
+      }
     }
 
     public static void main(String[] args) {
