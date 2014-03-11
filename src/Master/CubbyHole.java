@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 public class CubbyHole {
     public int Qsize = 50;
     private BlockingQueue<Data> clientQueue = new ArrayBlockingQueue<>(Qsize);
-    private PriotityBlockingQueue<Data> processorQueue = new PriorityBlockingQueue<>(Qsize);
+    private PriorityBlockingQueue<Data> processorQueue = new PriorityBlockingQueue<>(Qsize);
     private static int numProds = 0;
 
     public CubbyHole() {}
@@ -53,11 +53,7 @@ public class CubbyHole {
     }
 
     public void putProcessor(Data value){
-        try{
-            processorQueue.put(value);
-        } catch (InterruptedException e){
-            System.err.println("Processor Put error: "+e);
-        }
+        processorQueue.put(value);
     }
 
     public Data getProcessor(){

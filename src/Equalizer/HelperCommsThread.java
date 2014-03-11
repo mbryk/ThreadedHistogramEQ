@@ -1,11 +1,19 @@
 import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.net.*;
+import java.io.*;
 
-public class HelperCommsThread implements Runnable {
+public class HelperCommsThread extends Thread {
     private Socket socket;
     private int type;
     private BufferedImageArray array;
     private HistogramSplit histogram;
     private int index;
+    private int waiting;
 
     public HelperCommsThread(Socket socket,int type,BufferedImageArray array, HistogramSplit histogram, int index, int waiting) {
         this.socket = socket;
@@ -13,6 +21,7 @@ public class HelperCommsThread implements Runnable {
         this.array = array;
         this.histogram = histogram;
         this.index = index;
+        this.waiting = waiting;
     }
  
     public void run() {

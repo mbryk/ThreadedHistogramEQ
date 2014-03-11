@@ -23,11 +23,15 @@ public class HistogramSplit {
     public ArrayList<int[]> getHist(){
         return histogram;
     }
+
+    public ArrayList<int[]> getLUT(){
+        return histLUT;
+    }
     public void setLUT(ArrayList<int[]> myLUT){
         histLUT = myLUT;
     }
  
-    public ArrayList<int[]> makeHist(BufferedImage original){
+    public ArrayList<int[]> makeHist(BufferedImage input){
         int[] rhistogram = new int[256];
         int[] ghistogram = new int[256];
         int[] bhistogram = new int[256];

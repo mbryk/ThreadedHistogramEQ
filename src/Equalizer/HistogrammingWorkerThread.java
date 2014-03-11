@@ -1,4 +1,5 @@
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 public class HistogrammingWorkerThread implements Runnable {
 	private BufferedImageArray array;

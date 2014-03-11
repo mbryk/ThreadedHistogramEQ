@@ -26,10 +26,11 @@ public class ClientProcessorAssigner extends Thread {
 
 	public void run(){
 		boolean haveData = false;
+		Data data = null;
 		try{
 			while(true){
 				Data curProcessor = cubbyhole.getProcessor();
-				if (!haveData) Data data = cubbyhole.get();
+				if (!haveData) { data = cubbyhole.get(); }
 
 				Socket s = new Socket(curProcessor.ia, curProcessor.p);
 				if(ping(s)){

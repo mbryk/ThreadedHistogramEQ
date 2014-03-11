@@ -1,15 +1,27 @@
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.net.*;
 import java.io.*;
+import javax.imageio.ImageIO;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 
 public class writeToProcessors extends Thread{
 	private ServerSocket s;
-	private String[] filenames;
+	private String[] fileNames;
 	private int returnPort;
 	private String in_dir;
 
-	public writeToProcessors(ServerSocket s, String[] filenames, int returnPort, String in_dir){
+	public writeToProcessors(ServerSocket s, String[] fileNames, int returnPort, String in_dir){
 		this.s = s;
-		this.filenames = filenames;
+		this.fileNames = fileNames;
 		this.returnPort = returnPort;
 		this.in_dir = in_dir;
 	}

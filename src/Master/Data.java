@@ -1,7 +1,7 @@
 import java.net.*;
 import java.io.*;
 
-public class Data implements comparable<Data>{
+public class Data implements Comparable<Data>{
 	public InetAddress ia;
 	public int p;
 	public int requestType; // Relevant for clientQueue objects
@@ -10,10 +10,11 @@ public class Data implements comparable<Data>{
 	// 1: Producer request to calc histogram
 	// 2: Producer request to rescale image
 	
-	public Data(InetAddress ia,int p, int requestType){
+	public Data(InetAddress ia,int p, int requestType, float priority){
 		this.ia = ia;
 		this.p = p;
 		this.requestType = requestType;
+		this.priority = priority;
 	}
 	
 	public String toString(){
@@ -21,8 +22,8 @@ public class Data implements comparable<Data>{
 	}
 
 	public int compareTo(Data compareData){
-		int compareQuantity = ((Data) compareData).priority;
+		float compareQuantity = ((Data) compareData).priority;
 
-		return -(this.priority - compareQuantity);
+		return - ((int) ((this.priority - compareQuantity)*100));
 	}
 }

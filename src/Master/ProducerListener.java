@@ -16,6 +16,7 @@ public class ProducerListener extends Thread {
     }
     
     private int checkAvailability(int numRequested){ 
+        int numGranted;
     	int numProcessors = cubbyhole.getProcessorsCount();
         if (numRequested > numProcessors) numGranted = numProcessors;
         else numGranted = numRequested;
@@ -37,7 +38,7 @@ public class ProducerListener extends Thread {
 
 	            BufferedReader inFromP = new BufferedReader(
 	                new InputStreamReader(s.getInputStream()));
-	            PrintWriter outToP = new PrintWriter(sLB.getOutputStream(), true);
+	            PrintWriter outToP = new PrintWriter(s.getOutputStream(), true);
 	            String numRequested_str = inFromP.readLine();
 	            String requestType_str = inFromP.readLine();
 	            if (numRequested_str == null || requestType_str == null){

@@ -12,6 +12,10 @@ public class BufferedImageArray {
 		return array.get(index);
 	}
 
+	public int getSize(){
+		return array.size();
+	}
+
 	public void addImage(BufferedImage image, int index){
 		if(index>=array.size())
 			array.add(image);

@@ -8,9 +8,10 @@ import java.util.concurrent.Executors;
 import java.net.*;
 import java.io.*;
 import org.hyperic.sigar.*;
-
+import java.awt.Graphics;
 import java.lang.Object;
 import java.lang.Runtime;
+import java.util.ArrayList;
 
 public class Equalizers{
     public static final int FULL_IMAGE = 0;
@@ -23,13 +24,13 @@ public class Equalizers{
     private static int masterRequestPortNumber;
     private static BufferedImageArray array;
 
-    private String filename;
-    private String hostName;
-    private int returnPort;
+    private static String filename;
+    private static String hostName;
+    private static int returnPort;
 
     private static Sigar sigar;
 
-    private int judgeImage(int size, int workers){
+    private static int judgeImage(int size, int workers){
         int pieceSize = 10000*2^10; // 10 MB
         int pieces = size/pieceSize + 1;
         if(pieces==1) return 0;
@@ -37,23 +38,25 @@ public class Equalizers{
         else return pieces;
     }
     
-    private void splitUp(BufferedImage image,int pieces){
+    private static void splitUp(BufferedImage image,int pieces){
         int height = image.getHeight(); int width = image.getWidth();
         int interval = height/pieces;
+        BufferedImage subImage;
+        int i = 0;
         for(int y = 0; y<height; y+= interval){
             if(y+interval>height){ interval = height-y; }
-            subImage = image.getSubImage(0,y,width,interval);
-            array.addImage(subImage);
+            subImage = image.getSubimage(0,y,width,interval);
+            array.addImage(subImage,i++);
         }
     }
 
-    protected BufferedImage recombineImage(BufferedImage oldImage){
+    private static BufferedImage recombineImage(BufferedImage oldImage){
         BufferedImage image = new BufferedImage(oldImage.getWidth(), oldImage.getHeight(), oldImage.getType());
         Graphics g = image.getGraphics();
         BufferedImage subImage;
         int y = 0;
 
-        for(i=0;i<array.size();i++){
+        for(int i=0;i<array.getSize();i++){
             subImage = array.getImage(i);
             g.drawImage(subImage,0,y,null);
             y += subImage.getHeight();
@@ -70,8 +73,8 @@ public class Equalizers{
             String returnPort_str = readFromClient.readLine();
             returnPort = Integer.parseInt(returnPort_str);
 
-            byte[] originalByteImage;
             ObjectInputStream ois = new ObjectInputStream(inFromClient);
+            byte[] originalByteImage = (byte[])ois.readObject();
 
             socket.close();
              
@@ -84,10 +87,10 @@ public class Equalizers{
 
             int workerCount = THREAD_POOL_SIZE;
             int imParts = judgeImage(sizeInBytes,workerCount); // Return 0 if you can do it in one thread. 1 if you can do it with a pool. 2 if you need help.
-
+            BufferedImage processedImage;
             if(imParts == 0){
                 Histogram histogram = new Histogram(image);
-                BufferedImage processedImage = histogram.equalized;
+                processedImage = histogram.equalized;
             }            
             else{
                 array = new BufferedImageArray();
@@ -97,7 +100,7 @@ public class Equalizers{
                 if(!onYourOwn){
                     int waiting;
                     for(int type=1;type<3;type++){
-                        Socket reqHelpers = socket(masterHostName, masterRequestPortNumber);
+                        Socket reqHelpers = new Socket(masterHostName, masterRequestPortNumber);
                         BufferedReader inFromMReq = new BufferedReader(
                             new InputStreamReader(reqHelpers.getInputStream()));
                         PrintWriter outToMReq = new PrintWriter(reqHelpers.getOutputStream(), true);
@@ -108,7 +111,7 @@ public class Equalizers{
 
                         String helpersComing_str = inFromMReq.readLine();
                         int helpersComing = Integer.parseInt(helpersComing_str);
-                        if(!helpersComing){
+                        if(helpersComing == 0){
                             onYourOwn = true;
                             doPart1 = false;
                             break;
@@ -145,7 +148,7 @@ public class Equalizers{
                         histogram.calcHistogramLUT();
                     }
                 
-                    for(i=0;i<workerCount;i++){
+                    for(int i=0;i<workerCount;i++){
                         Runnable worker = new HistogrammingWorkerThread(array,histogram,i,HELPER_SCALING);    
                         executor.execute(worker);
                     } 
@@ -154,7 +157,7 @@ public class Equalizers{
 
                     System.out.println("Finished all threads");
                 }
-                BufferedImage processedImage = recombineImage(image);
+                processedImage = recombineImage(image);
             }
 
             Socket returnSocket = new Socket(hostName, returnPort);
@@ -183,7 +186,7 @@ public class Equalizers{
 
         InputStream inFromLeader = socket.getInputStream();
         byte[] originalByteImage;
-        ObjectInputStream ois = new ObjectInputStream(inFromClient);
+        ObjectInputStream ois = new ObjectInputStream(inFromLeader);
 
         originalByteImage = (byte[])ois.readObject();
         ByteArrayInputStream bais = new ByteArrayInputStream(originalByteImage);
@@ -202,7 +205,7 @@ public class Equalizers{
             BufferedReader inFromLP = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
 
-            ArrayList<int[]> histVar = new ArrayList<int[]>();
+            histVar = new ArrayList<int[]>();
             histVar.add(new int[256]);
             histVar.add(new int[256]);
             histVar.add(new int[256]);
@@ -216,7 +219,7 @@ public class Equalizers{
             }
             histogram.setLUT(histVar);
         }
-        for(i=0;i<workerCount;i++){
+        for(int i=0;i<workerCount;i++){
             Runnable worker = new HistogrammingWorkerThread(array,histogram,i,assignmentType);    
             executor.execute(worker);
         } 
@@ -268,7 +271,7 @@ public class Equalizers{
                 Socket s = new Socket(masterHostName,masterPortNumber); // To EqualizerListener            
 
                 //tell Master your details
-                int loadAvg = sigar.getLoadAverage()[0];
+                double loadAvg = sigar.getLoadAverage()[0];
                 PrintWriter outToMaster = new PrintWriter(s.getOutputStream(), true);
                 outToMaster.println(loadAvg);
                 outToMaster.println(THREAD_POOL_SIZE);

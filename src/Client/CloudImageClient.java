@@ -98,7 +98,7 @@ public class CloudImageClient {
             BufferedReader inFromP = new BufferedReader(
                 new InputStreamReader(rcvSocket.getInputStream()));
 
-            String filename = inFromP.readLine();
+            String fileName = inFromP.readLine();
 
             byte[] receivedByteImage = (byte[])ois.readObject();
             ByteArrayInputStream bais = new ByteArrayInputStream(receivedByteImage);
