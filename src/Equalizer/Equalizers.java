@@ -157,6 +157,7 @@ public class Equalizers{
 
                         histogram.calcHistogramLUT(image.getHeight()*image.getWidth());
                     }
+                    executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
                 
                     for(int i=0;i<workerCount;i++){
                         Runnable worker = new HistogrammingWorkerThread(array,histogram,i,HELPER_SCALING);    
