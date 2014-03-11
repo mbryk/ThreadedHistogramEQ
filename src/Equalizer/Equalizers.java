@@ -198,7 +198,22 @@ public class Equalizers{
         ArrayList<int[]> histVar;
 
         if(assignmentType==2){
-            histVar = socket.receiveStuff();
+            //histVar = socket.receiveStuff();
+            BufferedReader inFromLP = new BufferedReader(
+                new InputStreamReader(socket.getInputStream()));
+
+            ArrayList<int[]> histVar = new ArrayList<int[]>();
+            histVar.add(new int[256]);
+            histVar.add(new int[256]);
+            histVar.add(new int[256]);
+            
+            int i;
+            for(int[] intArray : histVar){
+                for(i = 0; i<256; i++){
+                    String curVal_str = inFromLP.readLine();
+                    intArray[i] = Integer.parseInt(curVal_str);
+                }
+            }
             histogram.setLUT(histVar);
         }
         for(i=0;i<workerCount;i++){
@@ -210,10 +225,25 @@ public class Equalizers{
 
         if(assignmentType==1){
             histVar = histogram.getHist();
-            socket.sendStuff(histVar);
+            //socket.sendStuff(histVar);
+            PrintWriter outToLP = new PrintWriter(socket.getOutputStream(), true);
+            int j;
+            for(int[] intArray : histVar){
+                for (j = 0; j<256; j++){
+                    outToLP.println(intArray[j]);
+                }
+            }
+
         } else {
             BufferedImage processedImage = recombineImage(image);
-            socket.send(processedImage);
+            //socket.send(processedImage);
+            OutputStream outToLP = socket.getOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(outToLP);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(processedImage,"jpg", baos);
+            baos.flush();
+            byte[] receivedByteImage = baos.toByteArray();
+            oos.writeObject(receivedByteImage);
         }
     }
 
