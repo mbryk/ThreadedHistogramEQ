@@ -13,15 +13,16 @@ public class HelperCommsThread extends Thread {
     private BufferedImageArray array;
     private HistogramSplit histogram;
     private int index;
-    private int waiting;
+    //private int waiting;
 
-    public HelperCommsThread(Socket socket,int type,BufferedImageArray array, HistogramSplit histogram, int index, int waiting) {
+    public HelperCommsThread(Socket socket,int type,BufferedImageArray array, HistogramSplit histogram, int index) {
+        super("Equalizers");
         this.socket = socket;
         this.type = type;
         this.array = array;
         this.histogram = histogram;
         this.index = index;
-        this.waiting = waiting;
+        //this.waiting = waiting;
     }
  
     public void run() {
@@ -43,7 +44,8 @@ public class HelperCommsThread extends Thread {
 
         if(type==1) receiveHistogram();
         else receiveImage();
-        waiting++;
+        Equalizers.waiting++;
+        System.out.println("Waiting: "+Equalizers.waiting);
     }
 
     private void receiveHistogram(){

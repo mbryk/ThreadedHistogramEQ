@@ -30,6 +30,8 @@ public class Equalizers{
 
     private static Sigar sigar;
 
+    protected static int waiting;
+
     private static int judgeImage(int size, int workers){
         int pieceSize = 10000*2^10; // 10 MB
         int pieces = size/pieceSize + 1;
@@ -106,7 +108,6 @@ public class Equalizers{
                 boolean onYourOwn = (imParts==1);
                 boolean doPart1 = true;
                 if(!onYourOwn){
-                    int waiting;
                     for(int type=1;type<3;type++){
                         Socket reqHelpers = new Socket(masterHostName, masterRequestPortNumber);
                         BufferedReader inFromMReq = new BufferedReader(
@@ -121,7 +122,7 @@ public class Equalizers{
                         int helpersComing = Integer.parseInt(helpersComing_str);
                         if(helpersComing == 0){
                             onYourOwn = true;
-                            //doPart1 = false;
+                            if(type==2) doPart1 = false;
                             break;
                         }
 
@@ -132,9 +133,11 @@ public class Equalizers{
                             waiting = 0;
                             for(int h=0;h<helpersComing;h++){
                                 Socket helper = getHelpers.accept();
-                                new HelperCommsThread(helper,type,array,histogram,h,waiting).start();
+                                new HelperCommsThread(helper,type,array,histogram,h).start();
                             }
-                            while(waiting<helpersComing);
+                            System.out.println("Waiting for waiting");
+                            while(waiting<helpersComing){System.out.println(waiting);}
+                            System.out.println("Waited for waiting");
                             //Make sure all those guys come back (.join())
                             if(type==1){
                                 histogram.calcHistogramLUT(image.getHeight()*image.getWidth());
@@ -286,20 +289,21 @@ public class Equalizers{
                 System.out.println("Waiting for Next Assignment");
 
                 //attach to Master to introduce
-                Socket s = new Socket(masterHostName,masterPortNumber); // To EqualizerListener            
+                Socket s = new Socket(masterHostName,masterPortNumber); // To EqualizerListener 
+                int originalPort = s.getLocalPort();
+                s.setReuseAddress(true);
+                System.out.println("Introduced to Master");           
 
                 //tell Master your details
                 double loadAvg = sigar.getLoadAverage()[0];
                 PrintWriter outToMaster = new PrintWriter(s.getOutputStream(), true);
                 outToMaster.println(loadAvg);
                 outToMaster.println(THREAD_POOL_SIZE);
-
-                //set port for reuse to rcv client info
-                int originalPort = s.getLocalPort();
-                s.setReuseAddress(true);
-
-                //New Server socket to wait for client info
                 ServerSocket sRcv = new ServerSocket(originalPort);
+
+                System.out.println("ServerSocket waiting for ClientInfo");
+                //New Server socket to wait for client info
+                
                 Socket infoSocket = sRcv.accept();
                 BufferedReader inFromMaster = new BufferedReader(
                     new InputStreamReader(infoSocket.getInputStream()));
@@ -315,9 +319,12 @@ public class Equalizers{
                 String portString = inFromMaster.readLine();
                 int receivedPort = Integer.parseInt(portString);
 
+                sRcv.close();
                 infoSocket.close();
 
+                System.out.println("Connecting to Client");
                 Socket socket = new Socket(hostName,receivedPort);
+                System.out.println("Connected to Client");
 
                 if(assignmentType==FULL_IMAGE){
                     // The socket just opened is with the Client

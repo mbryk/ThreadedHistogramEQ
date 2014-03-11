@@ -31,6 +31,8 @@ public class writeToProcessors extends Thread{
 		try{
 			//loop through images in directory
 	        for(String fileName : fileNames) {
+
+	        	System.out.println("bound? "+s.isBound()+"; Closed? "+s.isClosed());
 	            Socket echoSocket = s.accept();
 	            System.out.println("Connected to Processing Server");
 
@@ -63,6 +65,7 @@ public class writeToProcessors extends Thread{
 
 	            echoSocket.close();
 	        }
+	        s.close();
 	    } catch (IOException e){
 	    	System.err.println("writeToProcessors Error: "+e);
 	    	System.exit(-1);
