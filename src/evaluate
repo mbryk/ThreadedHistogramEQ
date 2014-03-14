@@ -50,13 +50,15 @@ done
 
 echo $totalTime
 
+totalFilesize=0
 cd "${DIR}/Client/imDir/"
 for file in ./*.jpg
 do
     FILESIZE=$(stat -c%s "$file")
+	totalFilesize=$(( ${totalFilesize} + ${FILESIZE} ))
 done
 
-totalProcessedBytes=$(( ${FILESIZE} * ${numClients} ))
+totalProcessedBytes=$(( ${totalFilesize} * ${numClients} ))
 echo ${totalProcessedBytes}
 
 totalThroughout=$( bc <<< "${totalProcessedBytes}/${totalTime}" )
