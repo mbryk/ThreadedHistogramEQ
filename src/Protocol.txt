@@ -1,0 +1,172 @@
+
+
+Client				Load Balancer				Master					Equalizer
+______				_____________				______ 					_________
+
+1.					Waiting for connection		Waiting for	connection
+						from both Clients			from both Clients
+						and Masters					Equalizers
+
+1a.												socket to LB			socket to Master
+
+1b.												tell LB what port 		tell Master load on node
+													Clients can connect 	and number of threads
+
+1c.												rcv from Eq information
+													and add to priority q
+
+2. socket to LB
+
+3.					Accept Client
+
+4.					Find an available Master
+
+4a.					send info request to all
+						Masters
+
+4b.												respond to LB with Master
+
+5.					Send best Master(ip:socket)
+						to Client
+
+5a. read in Master
+	(ip:socket)
+
+6. close socket to	close connection with Client
+	LB
+
+7. socket to Master
+
+8.												Accept Client
+
+9. send Master number
+	of images sending
+
+10.												read in number of images
+
+11.
+
+12.
+
+13. Open server socket							Add Client to cubbyhole
+	to accept connection							multiple times (according
+	from Equalizers									to # of imgs)
+
+14. Open server socket
+	to accept connection
+	from Equalizers for
+	returned images
+
+15.												Send Client (ip:socket)
+													from to best Equalizer
+													from priority q
+
+16. 																		Connect to client
+
+17. accept connection from
+	Equalizer
+
+17a. send fileName to Equalizer
+	and returnPort for Equalizer
+	to return image to
+
+17b.																		read in fileName and returnPort
+
+18. send image (in order)
+	to Equalizer
+
+19.																			read in image from Client
+
+20.																			Determine size of image
+																				(i.e. whether to split or not)
+																				** if(split) see below
+
+21.																			Process image
+
+22.																			Send image back to returnPort
+
+23. read Equalized image and close
+	when all are returned
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+if Equalizer split up image:
+-------------------------------------------------------------------------------------------------------------------
+
+depending on image size Equalizer may decide:
+	1) Process full image in main thread
+	2) split up image among threads on same node
+	3) split up image among other Nodes
+
+for case 1) OR 2) everything on one node, so addressed above,
+for case 3) the following is Protocol
+
+
+
+Master 							Equalizer 									Helper Equalizer
+______ 							_________ 									_______________
+
+1. waiting for connection
+	from Equalizer
+
+2. 								socket to Master (ProducerListener.java)
+
+2a. Accept Equalizer connection
+
+3.								tell Master how many more Nodes requested
+
+3a.								tell Master waht type of processing:
+									1) computing Histogram
+									2) scaling image based on hsitogram
+
+4. Read in requested #
+
+5. Determine how many extra
+	Equalizers are available
+
+6. Add Equalizer to the client
+	cubbyhole (multiple times
+	according to how many extra
+	Nodes being Granted)
+	wit requestType
+
+7. Send to Equalizer # of Nodes
+	Granted
+
+8.								Read in numGranted
+
+9.								Split up image accordingly
+
+10.								Waiting for connection from Helper
+
+11.																			socket to Equalizer
+
+12.								Accept from Helper
+
+13. 							Send image piece
+
+14. 																		receive image piece & compute Histogram
+
+15.																			return Histogram
+
+16.								receive & combine all Histograms			close connection
+
+17.								request from Master helpers to scale image
+
+18.	return numGranted
+
+19.	Add Equalizer to client 	receive numGranted & Split image accordingly
+	cubbyhole
+
+19a.																		socket to Equalizer
+
+20. 							Accept from Helper
+
+21.								Send image piece
+
+21a.																		receive image piece and scale and return
+
+22.								receive scaled pieces & recombine
